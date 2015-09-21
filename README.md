@@ -25,6 +25,6 @@ This git contains the course content for the C++ lecture I gave in 2015
    - [ ] Sample Solution 01.10
    - [ ] Sample Solution 02.10
 
- - [ ] Previous talks
+ - [x] Previous talks
    - [x] Smart Pointers (2014)
-   - [ ] Template Meta Programming (2015)
+   - [x] Template Meta Programming (2015)

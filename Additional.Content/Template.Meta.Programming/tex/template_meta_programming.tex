@@ -1,0 +1,1006 @@
+\documentclass[11pt,a4paper,dvipsnames,usenames]{beamer}
+%\documentclass[11pt,a4paper,dvipsnames,usenames,handout]{beamer}
+\usepackage{lmodern}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{amsmath,varwidth}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{tikz,tikz-uml,xparse}
+\usepackage{listings,algpseudocode}
+\usepackage[normalem]{ulem}
+\usepackage{transparent}
+
+\input{defs.tex}
+\input{style.tex}
+\input{funcs.tex}
+
+%\setbeameroption{show notes}
+
+\title[TMP]{Template Meta Programming}
+\author{Jonas R. Glesaaen \\ \texttt{glesaaen@th.physik.uni-frankfurt.de}}
+\date{May 27th 2015}
+
+\begin{document}
+
+\nocite{*}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Literature}
+  \bibliographystyle{plain}
+  {\footnotesize
+    \bibliography{ref}}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{What is Template Meta Programming?}
+
+  \vfill
+
+  Programming using the template interface of C++ so that certain common computations can be carried out at compile time.
+
+  \vfill
+
+  The "language" is functional in nature, no mutable data.
+
+  \vfill
+
+  Advantages:
+
+  \begin{itemize}
+    \item Reduce code duplication
+    \item Increase readability
+    \item Move error checks to compile time
+    \item More sophisticated type checking and lookup
+  \end{itemize}
+
+  \vfill
+
+  \note[item]
+  {
+    It is the next step in reducing code duplication over templates. While templates by themselves do a good job,
+    using meta programming we can add additional checks and requirements on our types before choosing specialisations.
+  }
+
+  \note[item]
+  {
+    Increase readability is a bit of an odd one as TMP is quite hard to read in my opinion. However, meta programming
+    can be used to for example inline horrible low level algorithms into your code for specialised cases, and do for
+    example loop unravelling and such. Leaving the code nice and readable while still being efficient at runtime.
+  }
+
+  \note[item]
+  {
+    Always great to move error checks to happen as early as absolutely possible. Specially if a try-block is in a rarely
+    executed part of your program. Also see our discussions on physics units in C++ to prevent other types of mistakes.
+  }
+
+  % Idea: talk a bit about its history here if time permits
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Looks familiar?}
+  \framesubtitle{Type traits}
+
+  \begin{lstlisting}
+template <class Itt>
+void iterator_swap (Itt first, Itt second)
+{
+  typedef typename std::iterator_traits<Itt>::value_type iterator_deref_type;
+
+  iterator_deref_type temp_value = *first;
+
+  *first = *second;
+  *second = temp_value;
+}
+  \end{lstlisting}
+
+  \note
+  {
+    First, ignore the fact that this is horribly optimized, and the fact that the problem here
+    is easily solved by \object{auto}, also that it could be circumvented by using \inline{std::swap}.
+
+    \vspace{1em}
+
+    Also, \inline{auto} doesn't necessarily give what you want when you have a proxy object with a conversion
+    as \inline{auto} will create an object of the same time, circumventing the conversion.
+
+    \vspace{1em}
+
+    We ask the compiler to find out what type dereferencing the iterator gets us using the handy
+    \inline{iterator_traits} function. The iterator itself do not necessarily contain this information
+    so \inline{iterator_traits} must be specialised for say raw pointers. More on that in a bit.
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Looks familiar?}
+  \framesubtitle{\inline{enable\_if} (C++14)}
+
+  \begin{lstlisting}
+template <
+  class Itt,
+  typename = std::enable_if_t<
+    !std::is_same<
+      typename std::iterator_traits<Itt>::value_type,
+      void
+     >::value
+  > 
+>
+void iterator_function (Itt first, Itt second)
+{
+  // ...
+}
+  \end{lstlisting}
+
+  \note
+  {
+    Ignoring the SFINAE thingy going on, we basically ask the compiler to calculate the expression
+    \inline{!(Itt::value_type == void)} at compile time.
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Recap: Template Specialisation}
+
+  \vfill
+
+  Heavily used in TMP to signal return paths and branch points for control structures.
+
+  \vfill
+
+  \begin{exampleblock}{\inline{iterator\_traits}}
+  \begin{lstlisting}
+template <class Itt>
+struct iterator_traits
+{
+  typedef typename Itt::value_type value_type;
+};
+
+template <class Type*>
+struct iterator_traits
+{
+  typedef Type value_type;
+};
+  \end{lstlisting}
+
+  \note
+  {
+    \inline{iterator\_traits}' existance is motivated by the fact that you can't call \inline{::value\_type} on a
+    pointer. On top of that it is also useful in its own right, if only to create a unified interface for meta functions.
+
+    \vspace{1em}
+
+    The Fundamental Theorem of Software Engineering (FTSE). We can solve any problem by introducing an extra level of indirection.
+    (Butler Lampson)
+  }
+\end{exampleblock}
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{When do you need \object{typename}?}
+
+  \vfill
+
+  \object{typename} is used to tell the compiler that what is coming up is a type. Used when you have 
+  a \textbf{dependent} name.
+
+  \vfill
+
+  \begin{exampleblock}{\object{typename} keyword}
+    \begin{lstlisting}
+    template <class Type>
+    typename traits_func<Type>::value_type //...
+    \end{lstlisting}
+  \end{exampleblock}
+
+  \vfill
+
+  Exactly what \inline{traits_func<Type>::value_type} is cannot be known at point of definition because of possible
+  template specialisation. \object{typename} fixes that issue.
+
+  \vfill
+
+  \inline{::value_type} is said to be a dependent type.
+
+  \note
+  {
+    Because of this it is generally a good idea to use the \object{class} keyword when giving a template 
+    a name so that it doesn't get mixed with typename's needed for dependent names.
+  }
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{When do you need \object{template}?}
+
+  \vfill
+
+  If the template class itself is a template, or has a template function, we need to tell the compiler.
+
+  \vfill
+
+  \begin{onlyenv}<1|handout:1>
+  \begin{exampleblock}{\object{template} keyword}
+    \begin{lstlisting}
+    template <class Type, unsigned N>
+    void foo(int x)
+    {
+      Type::function<N>(x);
+    };
+    \end{lstlisting}
+  \end{exampleblock}
+
+  \vfill
+
+  which is interpreted as
+
+  \begin{lstlisting}
+    (Type::function < N) > x;
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2|handout:|handout:2>
+  \begin{exampleblock}{\object{template} keyword}
+    \begin{lstlisting}[escapeinside={(*}{*)}]
+    template <class Type, unsigned N>
+    void foo(int x)
+    {
+      Type::(*\tikzmark{template1}*)template(*\tikzmark{template2}*) function<N>(x);
+    };
+    \end{lstlisting}
+  \end{exampleblock}
+
+  \begin{tikzpicture}[overlay, remember picture]
+    \draw[decoration={snake,amplitude=.5pt,segment length=3pt,post length=0pt},decorate, RoyalPurple] 
+      ($ (template1) + (0,-.1cm)$) -- ( $ (template2) + (0,-.1cm) $);
+  \end{tikzpicture}
+
+  \vfill
+
+  \object{template} is required when a \textbf{dependent} name access a template via \inline{.}, \inline{->} or \inline{::}.
+  \end{onlyenv}
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The Canonical Example}
+ 
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+    template<unsigned n>
+    struct Factorial
+    {
+      enum { value = n * Factorial<n-1>::value };
+    };
+
+    template<>
+    struct Factorial<0>
+    {
+      enum { value = 1 };
+    };
+
+    int main(int, char**)
+    {
+      std::cout << (*\tikzmark{canonical1}*)Factorial<10>::value(*\tikzmark{canonical2}*) << std::endl;
+    }
+  \end{lstlisting}
+
+  \uncover<2->{%
+  \begin{tikzpicture}[overlay, remember picture]
+    \draw[decoration={snake,amplitude=.5pt,segment length=3pt,post length=0pt},decorate, RoyalPurple] 
+      ($ (canonical1) + (0,-.2cm)$) -- ( $ (canonical2) + (0,-.2cm) $)
+      node [midway,below=.1cm,black,font=\footnotesize] {Runtime constant};
+  \end{tikzpicture}
+  }
+
+  \note<2>
+  {
+    Make use of the trick that for the compiler to be able to give you an object of type \inline{Factorial<10>} it
+    first need to initialise an object of type \inline{Factorial<9>}, and so on. It continues until it hits the
+    template specialisation \inline{Factorial<0>} which we have predefined and requires no more initialisations.
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Vocabulary}
+
+  \vfill
+
+  \textbf{Metadata}
+
+  \hfill
+  \begin{minipage}{\dimexpr\textwidth-1cm} \small
+    A constant "value" accessible by calling \inline{::value}
+  \end{minipage}
+
+  \vfill
+
+  \textbf{Metafunction}
+
+  \vspace{10pt}
+
+  \hfill
+  \begin{minipage}{\dimexpr\textwidth-1cm} \small
+    A function which takes its arguments as template arguments, and the result is stored in \inline{::type}
+    \begin{lstlisting}
+    some_metafunction<Arg1, Arg2>::type
+    \end{lstlisting}
+  \end{minipage}
+
+  \vfill
+
+  \textbf{Metafunction class}
+
+  \vspace{10pt}
+
+  \hfill
+  \begin{minipage}{\dimexpr\textwidth-1cm} \small
+    A function object that itself can be treated as a type. Function call accessed by a nested metafunction named
+    \inline{apply}
+    \begin{lstlisting}
+    struct some_metafunction
+    {
+      template <class Arg1, class Arg2>
+      struct apply
+      {
+        // ...
+      };
+    };
+    \end{lstlisting}
+  \end{minipage}
+
+  \note
+  {
+    Metadata: Also known as an integral constant wrapper.
+
+    \vspace{1em}
+
+    The metafunction class is the metaprogramming version of a functor, what you would pass to 
+    say STL library iterators such as \inline{std::for_each} and \inline{std::copy_if}. In metaprogramming
+    this is even more important than normal as we rely much more heavily on passing function objects around
+    when we have no mutable data.
+  }
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example: Multiplication}
+
+  \begin{onlyenv}<1|handout:1>
+  \begin{lstlisting}
+template <int N>
+struct integer
+{
+  constexpr static int value = N;
+  typedef integer type;
+};
+
+template <class Arg1, class Arg2>
+struct multiply
+{
+  typedef integer< Arg1::value * Arg2::value > type;
+};
+
+int main(int, argc**)
+{
+  typedef integer<5> five;
+  typedef integer<-9> m_nine;
+
+  std::cout << multiply<five,m_nine>::type::value 
+    << std::endl;
+}
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2|handout:2>
+    \begin{lstlisting}[escapeinside={(*}{*)}]
+template <int N>(*\tikzmark{mult1b}*)
+struct integer
+{
+  constexpr static int value = N;
+  typedef integer type;
+};(*\tikzmark{mult1e}*)
+
+template <class Arg1, class Arg2>(*\tikzmark{multff1}*)
+struct multiply
+  : integer< Arg1::value * Arg2::value >
+{};(*\tikzmark{multff2}*)
+
+int main(int, argc**)(*\tikzmark{mult2b}*)
+{
+  typedef integer<5> five;
+  typedef integer<-9> m_nine;
+
+  std::cout << multiply<five,m_nine>::type::value 
+    << std::endl;(*\tikzmark{mult2e}*)
+
+  std::cout << multiply<five,m_nine>::value 
+    << std::endl;
+}(*\tikzmark{mult3}*)
+  \end{lstlisting}
+
+  \dimtext{mult1b}{mult1e}
+  \dimtext{mult2b}{mult2e}
+  \dimtext{mult3}{mult3}
+
+  \begin{tikzpicture}[overlay, remember picture]
+    \coordinate (multitop) at ($(multff1) + (2cm,.6em)$);
+    \draw[decorate,decoration=brace] (multitop) -- (multitop |- multff2)
+      node[midway,right=.5cm,font=\footnotesize,align=center] {Metafunction \\ forwarding};
+  \end{tikzpicture}
+
+  \note<2|handout:2>
+  {
+    Function definition through inheritance is called metafunction forwarding, and it is one of the resons why we
+    defined the type of the integer wrapper, so that we can more easily keep the language consistent.
+
+    \vspace{1em}
+
+    See what we can access its value both through \inline{multiply<x,y>::type::value} and \inline{multiply<x,y>::value}. The first
+    interface is expected to be there, while the second is a shortcut sometimes implemented into numerical metafunctions.
+  }
+
+  \end{onlyenv}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Higher Order Metafunctions}
+
+  \vfill
+
+  As TMP inherently is a functional programming language, it is best at doing those kind of computations, computations with
+  functions.
+
+  \vfill
+  
+  Let us implement the \texttt{nest} function so that:
+
+  \vfill
+
+  \hspace{1cm} \texttt{nest(f,x,5) = f(f(f(f(f(x)))))}
+
+  \vfill
+
+  Assume that the \inline{integer} and \inline{multiply} still are defined as previous.
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Higher Order Metafunctions}
+
+  \vfill
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+template <class F, class X, unsigned N>(*\tikzmark{nestF1b}*)
+struct nest
+  : nest<F, (*\tikzmark{nest5}*)typename(*\tikzmark{nest6}*) F::(*\tikzmark{nest7}*)template(*\tikzmark{nest8}*) apply<X>::type, N-1>
+{};(*\tikzmark{nestF1e}*)
+
+template <class F, class X> (*\tikzmark{nest1}*)
+struct nest <F,X,0>
+  : X
+{}; (*\tikzmark{nest2}*)
+
+struct squared_f (*\tikzmark{nest3}*)
+{
+  template <class Arg>
+  struct apply
+    : multiply<Arg,Arg>
+  {};
+}; (*\tikzmark{nest4}*)
+
+int main(int, char**)(*\tikzmark{nestF2b}*)
+{
+  typedef integer<5> five;
+  nest<squared_f,five,3>::type::value; // ((5^2)^2)^2 
+}(*\tikzmark{nestF2e}*)
+  \end{lstlisting}
+
+  \only<2|handout:0>{%
+    \dimtext{nestF1b}{nestF1e}
+    \dimtext{nestF2b}{nestF2e}
+  }
+
+  \only<3|handout:0>{%
+    \dimtext{nest1}{nestF2e}
+  }
+
+  \uncover<2>{%
+  \begin{tikzpicture}[overlay, remember picture]
+    \coordinate (n1s) at ($(nest1) + (1em,.6em)$);
+    \draw[decorate,decoration=brace] (n1s) -- (n1s |- nest2)
+      node[midway,right=1cm,font=\footnotesize,align=center] {Template \\ specialisation};
+    \coordinate (n2s) at ($(nest3) + (1em,.6em)$);
+    \coordinate (n3s) at (n2s -| n1s);
+    \draw[decorate,decoration=brace] (n3s) -- (n3s |- nest4)
+      node[midway,right=1cm,font=\footnotesize,align=center] {Metafunction \\ class};
+  \end{tikzpicture}
+  }
+
+  \uncover<3>{%
+  \begin{tikzpicture}[overlay, remember picture]
+    \draw[decoration={snake,amplitude=.5pt,segment length=3pt,post length=0pt},decorate, RoyalPurple] 
+      ($ (nest5) + (0,-.1cm)$) -- ( $ (nest6) + (0,-.1cm) $);
+    \draw[decoration={snake,amplitude=.5pt,segment length=3pt,post length=0pt},decorate, RoyalPurple] 
+      ($ (nest7) + (0,-.1cm)$) -- ( $ (nest8) + (0,-.1cm) $);
+  \end{tikzpicture}
+  }
+
+  \note<3>
+  {
+    First notice that we need to pass a metafunction class to \inline{nest} as a metafunction without arguments isn't a type
+    in itself. We cannot write \inline{nest<multiply,Var,N>} because \inline{multiply} isn't defined without it's template
+    arguments. We will see in a bit that we can do exactly that (or something similar) using MPL placeholders, but more on that
+    later.
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The MPL boost library}
+
+  Collection of useful types and definitions to simplify TMP
+
+  \begin{itemize}
+    \item<1-> Metadata wrappers:
+      \begin{itemize}
+        \item \inline{bool_<b>}, \inline{int_<N>}, \inline{long_<N>}, \dots
+      \end{itemize}
+    \item<1-> Arithmetic functions and logic operators:
+      \begin{itemize}
+        \item \inline{plus<Arg1,Arg2>}, \inline{times<Arg1,Arg2>}, \dots
+        \item \inline{less<Arg1,Arg2>}, \inline{equal_to<Arg1,Arg2>}, \dots
+        \item \inline{and_<Arg>}, \inline{or_<Arg>}, \inline{nor_<Arg>}
+      \end{itemize}
+    \item<2-> Lambda functions and placeholders
+    \item<3-> Type selection
+      \begin{itemize}
+        \item \inline{if_<Pred,Func1,Func2>}, \inline{eval_if<Pred,Func1,Func2>}
+      \end{itemize}
+    \item<4-> Containers and iterators
+      \begin{itemize}
+        \item \inline{vector<Arg1,Arg2,...,ArgN>}, \inline{set<Arg1,Arg2,...,ArgN>}, \dots
+        \item \inline{next<It>}, \inline{prior<It>}, \inline{advance<It,N>}, \dots
+      \end{itemize}
+    \item<4-> STL like algorithm library
+      \begin{itemize}
+        \item \inline{transform<Seq,Fun>}, \inline{copy_if<Seq,Pred>}, \dots
+      \end{itemize}
+  \end{itemize}
+
+  \note<4>
+  {
+    Functions such as \inline{if_<Pred,Func1,Func2>} takes as an argument a metadata object and returns the first
+    type \inline{Func1} if \inline{Pred::type::value} is \inline{true} and the type \inline{Func2} if it is
+    \inline{false}. There are also integer version of most such functions, denoted by an \inline{_c}, so that e.g.
+    \inline{if_c<bool,Func1,Func2>} can be passed a bool instead of a metadata for convenience.
+
+    \vspace{1em}
+
+    Remember that TMP has no mutable objects, so e.g. \inline{transform} will return the transformed sequence rather
+    than copying it to another sequece object (or itself).
+  }
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Lambda functions and placeholders}
+
+  \vfill
+
+  \begin{onlyenv}<1|handout:1>
+
+  First!
+
+  \vspace{1em}
+
+  We will assume that we have the following header on all our code to reduce the examples:
+  \begin{lstlisting}
+  namespace mpl = boost::mpl;
+  using namespace mpl::placeholders;
+  \end{lstlisting}
+
+  If not, we would have to write the following everywhere we wanted an MPL placeholder:
+  \begin{lstlisting}
+  boost::mpl::placeholders::_1,
+  boost::mpl::placeholders::_2,
+  boost::mpl::placeholders::_3, ...
+  \end{lstlisting}
+
+  which gets tedious...
+  \end{onlyenv}
+
+  \begin{onlyenv}<2|handout:2>
+    Lambda functions are a signature part of any functional programming language and also go very well
+    with STL like algorithms.
+
+    \vfill
+    
+    From our example earlier with \inline{square_f<Arg>}, that function in itself seems a bit redundant as it
+    can easily be written as \inline{multiply<Arg,Arg>} with the same argument. But we run into two problems:
+
+    \vfill
+
+    \begin{itemize}
+      \item The \inline{multiply} function is a metafunction, while the \inline{nest} function takes a metafunction class (a
+        functor).
+      \item We have no way of reducing \inline{multiply}'s argument list to only take one argument
+    \end{itemize}
+
+    \vfill
+
+    MPL's placeholders solve this!
+  \end{onlyenv}
+
+  \begin{onlyenv}<3|handout:3>
+  \begin{exampleblock}{With MPL lambda functions}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+template <class F, class X, unsigned N>
+struct nest
+  : nest<F, typename F::template apply<X>::type, N-1>
+{};
+
+template <class F, class X>
+struct nest <F,X,0>
+  : X
+{};
+
+int main(int, char**)
+{
+  typedef integer<5> five;
+  nest<
+    (*\tikzmark{lambda7}*)mpl::lambda< multiply<_1,_1> >::type(*\tikzmark{lambda8}*),five,3
+  >::type::value;
+}
+  \end{lstlisting}
+  \end{exampleblock}
+
+  \begin{tikzpicture}[overlay, remember picture,decoration={snake,amplitude=.5pt,segment length=3pt,post length=0pt}]
+    \draw[decorate, RoyalPurple] 
+      ($ (lambda7) + (0,-.1cm)$) -- ( $ (lambda8) + (0,-.1cm) $);
+  \end{tikzpicture}
+
+  \end{onlyenv}
+
+  \begin{onlyenv}<4|handout:4>
+    \begin{exampleblock}{With {\inline{mpl}\texttt{::}\inline{apply}} {\color{OliveGreen} and placeholders}}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+template <class F, class X, unsigned N>
+struct nest
+  : nest<F, (*\tikzmark{lambda1}*)typename mpl::apply<F,X>::type(*\tikzmark{lambda2}*), N-1>
+{};
+
+template <class F, class X>
+struct nest <F,X,0>
+  : X
+{};
+
+int main(int, char**)
+{
+  typedef integer<5> five;
+  (*\tikzmark{lambda3}*)nest<multiply<_1,_1>,five,3>::type::value(*\tikzmark{lambda4}*);
+}
+  \end{lstlisting}
+  \end{exampleblock}
+
+  \begin{tikzpicture}[overlay, remember picture]
+    \draw[decoration={snake,amplitude=.5pt,segment length=3pt,post length=0pt},decorate, RoyalPurple] 
+      ($ (lambda1) + (0,-.1cm)$) -- ( $ (lambda2) + (0,-.1cm) $);
+    \draw[decoration={snake,amplitude=.5pt,segment length=3pt,post length=0pt},decorate, RoyalPurple] 
+      ($ (lambda3) + (0,-.1cm)$) -- ( $ (lambda4) + (0,-.1cm) $);
+  \end{tikzpicture}
+
+  \end{onlyenv}
+
+  \note<4|handout:4>
+  {
+    First option is to use \inline{mpl::lambda} to change the call to \inline{nest} without changing nest itself.
+    As one can see, using the MPL lambda functions is very flexible and can easily be incorporated to work with
+    existing metaprograms.
+
+    \vspace{1em}
+
+    The special \inline{mpl::apply} function scans the \inline{Func} type and turns it into a metafunction class
+    if it contains any placeholders.
+    
+    \vspace{1em}
+
+    Could of course use \inline{mpl::int\_<N>} and \inline{mpl::times<Arg1,Arg2>} throughout, but we will stick with
+    our previously defined metadata and metafunctions to see that they are compatible with the rest of boost.
+  }
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Control structures}
+
+  Previously: Used template specialisation to switch between implementations
+
+  \begin{exampleblock}{Simple template specialisation}
+    \begin{lstlisting}[escapeinside={(*}{*)}]
+template <class Type, bool FastImpl>
+struct algorithm
+{
+  void operator() (const Type &)
+  {
+    // faster algorithm
+  }
+};
+
+template <class Type>(*\tikzmark{safebegin}*)
+struct algorithm<Type,false>
+{
+  void operator() (const Type &)
+  {
+    // safer algorithm
+  }
+};(*\tikzmark{safeend}*)
+    \end{lstlisting}
+  \end{exampleblock}
+
+  \begin{tikzpicture}[overlay, remember picture]
+    \coordinate (safeupper) at ($(safebegin) + (2.5cm,.6em)$);
+    \draw[decorate,decoration=brace] (safeupper) -- (safeupper |- safeend)
+      node[midway,right=.5cm,font=\footnotesize,align=center] {Specialised for \\ \lstinline!FastImpl = false!};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Control structures}
+
+  \vfill
+
+  With TMP we can do more sophisticated checks and switches
+
+  \vfill
+
+  %\begin{exampleblock}{Simple template specialisation}
+  \begin{onlyenv}<1|handout:1>
+  \begin{exampleblock}{One more level of indirection}
+  \begin{lstlisting}
+struct fast_algorithm
+{
+  template <class Itt1, class Itt2>
+  static void execute(Itt1, Itt2);
+};
+
+struct safe_algorithm
+{
+  template <class Itt1, class Itt2>
+  static void execute(Itt1, Itt2);
+};
+  \end{lstlisting}
+  \end{exampleblock}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2|handout:2>
+  \begin{exampleblock}{Choosing an implementation}
+  \begin{lstlisting}
+struct algorithm
+{
+  template <class Itt1, class Itt2>
+  static void execute(Itt1 i1, Itt2 i2)
+  {
+    mpl::if_<
+      typename mpl::and_<
+        is_random_access<Itt1>,
+        is_random_access<Itt2>
+      >::type,
+      fast_algorithm,
+      safe_algorithm
+    >::type::execute(i1,i2);
+  }
+};
+  \end{lstlisting}
+  \end{exampleblock}
+  \end{onlyenv}
+
+  \note<2|handout:2>
+  {
+    See that we have a unified interface that itself makes sure that it isn't misused and chooses the correct implementation
+    depending on the type it is given.
+
+    \vspace{1em}
+
+    Example usage: could unify the STL sort algorithm. \inline{std::sort} only takes random access operators, while things such
+    as \inline{std::set} and \inline{std::map} come pre sorted and \inline{std::list} have a sorting member function. Could
+    write a function that takes arbitrary containers or iterators and use the correct implementation behind the scene. Drawback:
+    hides the complexity of the operation.
+  }
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Containers and iterators}
+
+  \vfill
+
+  boost provides a complete STL like container and algorithm library.
+
+  \vfill
+
+  Different containers have different access concepts
+
+  \vfill
+
+  \begin{center}
+  \begin{tabular}{|l|} \hline
+    Forward sequence \\
+    {\lstinline[basicstyle=\ttfamily\normalsize]!begin<S>, end<S>, size<S>, front<S>!} \\
+    {\lstinline[basicstyle=\ttfamily\normalsize]!push_front<S,x>, pop_front<S>!} \\
+    {\lstinline[basicstyle=\ttfamily\normalsize]!insert<S,it,x>, erase<S,it>, clear<s>!} \\ \hline
+    Bidirectional sequence \\
+    {...\lstinline[basicstyle=\ttfamily\normalsize]!, back<S>, push_back<S,x>, pop_back<S>!} \\ \hline
+    Random access sequence \\
+    {...\lstinline[basicstyle=\ttfamily\normalsize]!, at<S,n>!} \\ \hline
+  \end{tabular}
+  \end{center}
+
+  \vfill
+
+  All functions return new sequences because we have no mutable objects.
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Containers and iterators: Short example}
+  \framesubtitle{\inline{mpl::transform} and \inline{mpl::vector}}
+
+  \vfill
+
+  \vspace{1em}
+  
+  \begin{overprint}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+typedef mpl::vector<
+  integer<3>, integer<7>, integer<-1> > my_vector;(*\tikzmark{vec1}*)
+
+typedef mpl::transform<
+  my_vector,
+  multiply<_1,_1>
+>::type square_vector;(*\tikzmark{vec2}*)
+
+typedef mpl::begin<square_vector>::type begin;(*\tikzmark{vec3}*)
+typedef mpl::next<begin>::type next;(*\tikzmark{vec4}*)
+
+mpl::is_same<
+  mpl::deref<next>::type,
+  integer<49>
+>::value;(*\tikzmark{vec5}*)
+  \end{lstlisting}
+
+  \only<1|handout:0>{
+  \begin{center}
+    \begin{tikzpicture}[every node/.style={inner sep=0pt},remember picture]
+      \node[scale=1.5] (A1) {\{};
+      \node[right=5pt of A1] (B1) {\strut$3,$};
+      \node[right=5pt of B1] (C1) {\strut$7,$};
+      \node[right=5pt of C1] (D1) {\strut$-1$};
+      \node[scale=1.5, right=5pt of D1] {\}};
+    \end{tikzpicture}
+  \end{center}
+  }
+
+  \only<2-4|handout:0>{
+  \begin{center}
+    \begin{tikzpicture}[every node/.style={inner sep=0pt},remember picture]
+      \node[scale=1.5] (A2) {\{};
+      \node[right=5pt of A2] (B2) {\strut$9,$};
+      \node[right=5pt of B2] (C2) {\strut$49,$};
+      \node[right=5pt of C2] (D2) {\strut$1$};
+      \node[scale=1.5, right=5pt of D2] {\}};
+    \end{tikzpicture}
+  \end{center}
+  }
+
+  \only<5|handout:0>{
+  \begin{center}
+    \tikz \node {\inline{true}};
+  \end{center}
+  }
+  \end{overprint}
+
+  \begin{tikzpicture}[overlay, remember picture]
+    \coordinate (p1s) at ($(vec1) + (1em,.4ex)$);
+    \coordinate (p1e) at ($(p1s) + (.5,0)$);
+    \draw <1|handout:0> [<-,>=stealth] (p1s) -- (p1e) 
+      node[right = 5pt, minimum size=5pt, inner sep=0pt, draw, circle, fill=Bittersweet] {};
+    \coordinate (p2s) at ($(vec2) + (1em,.4ex)$);
+    \coordinate (p2e) at (p2s -| p1e);
+    \draw <2|handout:0> [<-,>=stealth] (p2s) -- (p2e) 
+      node[right = 5pt, minimum size=5pt, inner sep=0pt, draw, circle, fill=Bittersweet] {};
+    \coordinate (p3s) at ($(vec3) + (1em,.4ex)$);
+    \coordinate (p3e) at (p3s -| p1e);
+    \draw <3|handout:0> [<-,>=stealth] (p3s) -- (p3e) 
+      node[right = 5pt, minimum size=5pt, inner sep=0pt, draw, circle, fill=Bittersweet] {};
+    \coordinate (p4s) at ($(vec4) + (1em,.4ex)$);
+    \coordinate (p4e) at (p4s -| p1e);
+    \draw <4|handout:0> [<-,>=stealth] (p4s) -- (p4e) 
+      node[right = 5pt, minimum size=5pt, inner sep=0pt, draw, circle, fill=Bittersweet] {};
+    \coordinate (p5s) at ($(vec5) + (1em,.4ex)$);
+    \coordinate (p5e) at (p5s -| p1e);
+    \draw <5|handout:0> [<-,>=stealth] (p5s) -- (p5e) 
+      node[right = 5pt, minimum size=5pt, inner sep=0pt, draw, circle, fill=Bittersweet] {};
+  \end{tikzpicture}
+
+  \begin{tikzpicture}[overlay, remember picture]
+    \draw <3|handout:0> [<-,>=stealth] ($(B2) + (0,-1em)$) -- +(0,-1em);
+    \draw <4|handout:0> [<-,>=stealth] ($(C2) + (0,-1em)$) -- +(0,-1em);
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Where to go from here?}
+
+  \vfill
+
+  \begin{center}
+    \tikz \node[font=\large,color=RoyalBlue] {\uline{Try it for yourself!}};
+  \end{center}
+
+  \vfill
+
+  \begin{onlyenv}<2>
+  \begin{itemize}
+    \item Try to write simple programs
+      \begin{itemize}
+        \item Calculate an arithmetic sum
+        \item Sum up the elements of a vector
+        \item Implement your own for-loop
+        \item ...
+      \end{itemize}
+    \item Study the literature
+    \item Familiarise yourself with the boost MPL library
+    \item See if you can make use of type switching in your own programs
+    \item See if you can catch potential errors in your own programs
+  \end{itemize}
+  \end{onlyenv}
+
+  \vfill
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Summary}
+
+  \begin{itemize}
+    \item We have seen how we can use the C++ template system to write metaprograms that look like normal programs.
+    \item Metadata are types that contain their value in a public \inline{::value} type.
+    \item Metafunctions are called by their public \inline{::type} type
+      \begin{lstlisting}
+  some_metafunction<Arg1,Arg2,...,ArgN>::type
+      \end{lstlisting}
+    \item Language facilitates a functional programming style with functions that manipulate other functions
+    \item boost's MPL library implement a lot of useful metafuntions and types
+  \end{itemize}
+
+\end{frame}
+
+\end{document}
