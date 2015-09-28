@@ -5,7 +5,7 @@ This git contains the course content for the C++ lecture I gave in 2015
 ## Things left to upload
 
  - [ ] Lecture slides
-   - [ ] Lecture 28.09
+   - [x] Lecture 28.09
    - [ ] Lecture 29.09
    - [ ] Lecture 30.09
    - [ ] Lecture 01.10
