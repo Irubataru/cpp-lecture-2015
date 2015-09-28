@@ -12,8 +12,8 @@ This git contains the course content for the C++ lecture I gave in 2015
    - [ ] Lecture 02.10
 
  - [ ] Exercies
-   - [ ] Exercises 28.09
-   - [ ] Exercises 29.09
+   - [x] Exercises 28.09
+   - [x] Exercises 29.09
    - [ ] Exercises 30.09
    - [ ] Exercises 01.10
    - [ ] Exercises 02.10
