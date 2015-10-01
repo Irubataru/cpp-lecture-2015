@@ -1,0 +1,81 @@
+% -------------------------- %
+% Standard LaTeX definitions %
+% -------------------------- %
+
+\DeclareGraphicsExtensions{.pdf}
+\renewcommand\textbullet{\ensuremath{\bullet}}
+
+% ----------------------------------- %
+% Various tikz styles and definitions %
+% ----------------------------------- %
+
+\usetikzlibrary{calc,intersections,positioning,matrix,chains,scopes}
+\usetikzlibrary{decorations.pathmorphing,decorations.pathreplacing,shapes}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{arrows.meta,bending}
+
+\tikzset{
+  table/.style={
+    matrix of nodes,
+    row sep=-\pgflinewidth,
+    column sep=-\pgflinewidth,
+    nodes={rectangle,draw,text width=6ex,align=center,scale=0.8},
+    text depth=0.1ex,
+    text height=1.25ex,
+    nodes in empty cells
+  },
+  pointy arrow/.style={
+    {Stealth[flex]}-,
+    line width=1pt
+  },
+  simple uml node/.style={
+    draw, rectangle,
+    line width=1pt,
+    rounded corners,
+    fill=TealDrop,
+    text width=3cm,
+    align=center,
+    font=\footnotesize
+  },
+  uml arrow/.style={
+    -{Stealth},
+    line width=1pt
+  }
+}
+% ---------------------------------- %
+% My default listings C++ code style %
+% ---------------------------------- %
+
+\lstset{%
+  language=C++, basicstyle=\ttfamily\lst@ifdisplaystyle\footnotesize\fi,
+  keywordstyle=\color{sgreen}, identifierstyle=\color{sblue}, 
+  commentstyle=\color{sbase1}, stringstyle=\color{sorange},
+  numberstyle=\color{sviolet}, showstringspaces=false,  
+  breaklines=true, prebreak=\mbox{{\color{sbase1}\tiny\ $\hookleftarrow$}}, 
+  postbreak=\mbox{{\color{sbase1}\tiny$\to$\ }}, tabsize=5,
+  morekeywords={%
+    unique_ptr,shared_ptr,weak_ptr,auto_ptr,
+    make_unique, make_shared, default_delete,
+    dynamic_pointer_cast, const_pointer_cast,
+    scoped_ptr,QSharedPointer,QScopedPointer,QWeakPointer,
+    list,vector,map,stack,queue,array
+  }
+}
+
+\lstalias[]{gnumake}[gnu]{make}
+
+\def\inline{\lstinline[basicstyle=\ttfamily\normalsize]}
+
+% ---------------------------------------------------------------------------------------------------- %
+% Various command for inline code instead of lstinline so that I don't have to update the keyword list %
+% ---------------------------------------------------------------------------------------------------- %
+
+\newcommand{\object}[1]{{\ttfamily \color{OliveGreen}#1}}
+\newcommand{\function}[1]{{\ttfamily \color{RoyalBlue}#1}}
+\newcommand{\std}[1]{{\ttfamily {\color{RoyalBlue} std::}{\color{OliveGreen}#1}}}
+\newcommand{\boost}[1]{{\ttfamily {\color{RoyalBlue} boost::}{\color{OliveGreen}#1}}}
+
+\newcommand{\uniqueptr}{\std{unique\_ptr}}
+\newcommand{\sharedptr}{\std{shared\_ptr}}
+\newcommand{\weakptr}{\std{weak\_ptr}}
+\newcommand{\autoptr}{\std{auto\_ptr}}

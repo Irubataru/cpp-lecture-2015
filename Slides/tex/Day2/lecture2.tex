@@ -1,0 +1,1798 @@
+\documentclass[14pt,a4paper,dvipsnames,usenames]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{amsmath,varwidth}
+\usepackage{tikz,tikz-uml,xparse}
+\usepackage{listings,algpseudocode}
+\usepackage[quiet]{mathspec}
+
+\setmainfont[
+  ItalicFont={Yanone Kaffeesatz Light},
+  Scale=1.3,
+  LetterSpace=2.0
+]{Yanone Kaffeesatz Bold}
+
+\setmonofont{Hack}
+
+\input{style.tex}
+\input{defs.tex}
+\input{funcs.tex}
+
+
+\usefonttheme{serif}
+
+%\setbeameroption{show notes}
+
+\newcommand{\StrikeThrough}[2][Marty]{%
+  \tikz[baseline=(strokethrough.base)]{%
+    \node[inner sep=0pt, outer sep=0pt] (strokethrough) {\strut{}#2};
+    \draw[line width=2pt,#1] ([xshift=-3pt] strokethrough.west) -- ([xshift=3pt] strokethrough.east);
+  }
+}
+
+\title[C++ Day2]{Introduction to the C++\newline{}Programming Language\newline{}\newline{}\fontsize{16pt}{16pt}\selectfont{}Day 2}
+\author{\texorpdfstring{%
+    Jonas Rylund Glesaaen\newline\fontsize{12pt}{12pt}\selectfont\texttt{jonas@glesaaen.com}%
+  }{%
+    Jonas Rylund Glesaaen}}
+\date{September 29th 2015}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{What will we learn?}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item \StrikeThrough{Basic C++ syntax}
+    \item \StrikeThrough{Control structures}
+    \item Functions \hspace{.5cm}{\color{Marty}(today)}
+    \item Structs and classes \hspace{.25cm}{\color{Tropiteal}(Wednesday and Thursday)}
+    \item Templates and STL \hspace{.5cm}{\color{Tropiteal}(Thursday and Friday)}
+    \item Exceptions \hspace{.5cm}{\color{Tropiteal}(Friday)}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Today's topics}
+
+  \tableofcontents
+  
+\end{frame}
+
+\section{Scope}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Variable Visibility}
+
+  A scope is an area of visibility of a defined name
+
+  \vspace{.3cm}
+  \begin{columns}
+  \column{0.45\textwidth}
+  \begin{tikzpicture}
+    \node [
+      draw, line width=1pt,
+      text width=\textwidth, text depth=1.5cm,
+      FeebleWeek
+    ] (scope1) {%
+      Scope \#1
+    };
+    \node[anchor=west] at ([yshift=-.25em]scope1.west) {var \;a, b};
+    \node [
+      below=.5cm of scope1,
+      draw, line width=1pt,
+      text width=\textwidth, text depth=1.5cm,
+      Marty
+    ] (scope2) {%
+      Scope \#2
+    };
+    \node[anchor=west] at ([yshift=-.25em]scope2.west) {var \;b, c};
+  \end{tikzpicture}
+  \column{0.55\textwidth}
+  
+  \begin{itemize}
+    \setlength\itemsep{1em}
+    \item a is not defined in\\scope \#2
+    \item c is not defined in\\scope \#1
+    \item the name b is not the same memory address in the two scopes
+  \end{itemize}
+  
+  \end{columns}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variable Visibility}
+
+  Scopes can also be nested
+
+  \vspace{.5cm}
+  \begin{columns}
+  \column{0.45\textwidth}
+  \begin{tikzpicture}
+    \node [
+      draw, line width=1pt,
+      text width=\textwidth, text depth=4cm,
+      FeebleWeek
+    ] (scope1) {%
+      Scope \#1
+    };
+    \node[anchor=west] at ([yshift=-2em]scope1.north west) (scope1var) {var \;a, b};
+    \node [
+      below=.25em of scope1var.south west,
+      xshift=.5em,
+      draw, line width=1pt,
+      text width=0.7\textwidth, text depth=1.5cm,
+      anchor=north west,
+      Marty
+    ] (scope2) {%
+      Scope \#2
+    };
+    \node[anchor=west] at ([yshift=-2em]scope2.north west) (scope2var) {var \;c, d};
+  \end{tikzpicture}
+  \column{0.55\textwidth}
+  
+  \begin{itemize}
+    \setlength\itemsep{1em}
+    \item a and b are both available in scope \#2
+    \item c and d are not in\\scope \#1
+  \end{itemize}
+  
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variable Visibility}
+
+  One can also overshadow names in nested scopes
+
+  \vspace{.5cm}
+  \begin{columns}
+  \column{0.45\textwidth}
+  \begin{tikzpicture}
+    \node [
+      draw, line width=1pt,
+      text width=\textwidth, text depth=4cm,
+      FeebleWeek
+    ] (scope1) {%
+      Scope \#1
+    };
+    \node[anchor=west] at ([yshift=-2em]scope1.north west) (scope1var) {var \;a};
+    \node [
+      below=.25em of scope1var.south west,
+      xshift=.5em,
+      draw, line width=1pt,
+      text width=0.7\textwidth, text depth=1.5cm,
+      anchor=north west,
+      Marty
+    ] (scope2) {%
+      Scope \#2
+    };
+    \node[anchor=west] at ([yshift=-2em]scope2.north west) (scope2var) {var \;a};
+  \end{tikzpicture}
+  \column{0.05\textwidth}
+  \column{0.45\textwidth}
+
+  The a is not the same in the two scopes
+
+  \vspace{1em}
+  a from Scope \#1 is unavailable inside of Scope \#2
+  
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Scope and memory management}
+
+  A variable only takes up memory while it is "in scope"
+
+  \vspace{1em}
+  It is deleted when it goes "out of scope"
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Blocks \;$\approx$\; Scope}
+
+  Blocks define a new scope
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+{ (*\tikzmark{scope1 begin}*)
+  bool dancing = true;
+  for (;;) { (*\tikzmark{scope2 begin}*)
+    // ...
+
+  } (*\tikzmark{scope2 end}*)
+} (*\tikzmark{scope1 end}*)
+
+{ (*\tikzmark{scope3 begin}*)
+  int baboons = 10;
+  // ...
+} (*\tikzmark{scope3 end}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (first layer) at ( current page.north);
+    \coordinate (second layer) at ([xshift=.75cm] current page.north);
+
+    \draw[decorate,decoration={brace,amplitude=5pt,aspect=0.15},line width=1pt]
+      ($(scope1 begin -| first layer) + (0,1ex)$) -- (scope1 end -| first layer)
+      node[pos=0.15,right=.5em,scale=0.75] {Scope 1};
+    \draw[decorate,decoration={brace,amplitude=5pt,aspect=0.5},line width=1pt]
+      ($(scope2 begin -| second layer) + (0,1ex)$) -- (scope2 end -| second layer)
+      node[pos=0.5,right=.25em,scale=0.75] {Scope 2};
+    \draw[decorate,decoration={brace,amplitude=5pt,aspect=0.5},line width=1pt]
+      ($(scope3 begin -| first layer) + (0,1ex)$) -- (scope3 end -| first layer)
+      node[pos=0.5,right=.5em,scale=0.75] {Scope 3};
+  \end{tikzpicture}
+
+\end{frame}
+
+\section{Functions}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{DRY, KISS, YAGNI, Occam, ...}
+
+  Functions is a tool to divide one big problem\\into many small ones
+
+  \vspace{1em}
+  DRY - Don't Repeat Yourself
+
+  \vspace{1em}
+  KISS - Keep It Simple, 
+  \tikz[baseline={(stupid.base)}]{
+    \node[inner sep=2pt] (stupid) {Stupid};
+    \draw[line width=2pt,Marty] ([yshift=.2cm] stupid.south west) -- ([yshift=-.1cm] stupid.north east);
+  } Silly
+
+  \vspace{1em}
+  If you copy-paste while programming,\\you are doing it {\color{Marty}WRONG}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{What is a function?}
+
+  A function is a unit in your program that
+
+  \vspace{1em}
+  \begin{itemize}
+    \setlength\itemsep{1em}
+    \item Takes input from the caller {\color{Tropiteal}\fontsize{8pt}{8pt}\selectfont[optional]}
+    \item {\color{Marty}\underline{Does something}}
+    \item Returns the result to the caller {\color{Tropiteal}\fontsize{8pt}{8pt}\selectfont[optional]}
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The Function Signature}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{11pt}{11pt}\selectfont]
+(*\tikzmark{type begin}*)double (*\tikzmark{name begin}*)integerPower((*\tikzmark{sig begin}*)double x, int n(*\tikzmark{sig end}*)) { (*\tikzmark{body}*)... }
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(2ex,-.25em)}] type begin) .. controls +(0,-1cm) and +(-.5cm,0) .. +(.5cm,-1cm)
+      node[right, scale=0.8,align=left] {The return type\\of the function};
+    \draw[pointy arrow] ([shift={(4ex,1.25ex)}] name begin) -- +(0,1cm)
+      node[above,xshift=-1cm] [align=left,scale=0.8] {The name of the function\\Similar to a variable name};
+    \draw[transform canvas={yshift=-.25em},decorate,decoration={brace,amplitude=5pt,mirror},line width=1pt]
+      (sig begin) -- (sig end);
+    \draw[transform canvas={yshift=-.5cm},pointy arrow] ($(sig begin) !.5! (sig end)$) -- +(0,-2cm)
+      node[below,xshift=-1cm,scale=0.8] {The input parameters of the function};
+    \draw[pointy arrow] ([shift={(1ex,1.25ex)}] body) -- +(0,1cm)
+      node[above,scale=0.8,align=center] {The function body\\{\fontsize{10pt}{10pt}\selectfont(creates a scope)}};
+  \end{tikzpicture}
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Return types}
+
+  Most types, including qualifiers, can be returned from a function
+  {\fontsize{10pt}{10pt}\selectfont{}but their meanings might not be that straight forward}
+
+  \vspace{1em}
+  To return something from a function, use the {\color{FeebleWeek}return} keyword
+  
+  \begin{onlyenv}<2>
+    \vspace{.5em}
+    \begin{lstlisting}[basicstyle=\ttfamily]
+      int highFive()
+      {
+        return 5;
+      }
+    \end{lstlisting}
+  \end{onlyenv}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Return types}
+
+  \vspace{.5em}
+  {\fontsize{18}{18}\selectfont{}\color{FeebleWeek}reference / pointer}
+
+  \vspace{.5em}
+  returning references and pointers can be very useful, just make sure the variables haven't gone out of scope
+
+  \vspace{.5em}
+  \begin{lstlisting}
+int & highFive()
+{
+  int five = 5;
+  return five;
+}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  this will not work
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Return types}
+
+  \vspace{.5em}
+  {\fontsize{18}{18}\selectfont{}\color{FeebleWeek}void}
+
+  \vspace{1em}
+  void is the return type when you don't want to return anything
+
+  \vspace{.5em}
+  \begin{lstlisting}
+void sayHello()
+{
+  std::cout << "Hello!" << std::endl;
+}
+  \end{lstlisting}
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Return types}
+
+  \vspace{.5em}
+  {\fontsize{18}{18}\selectfont{}\color{FeebleWeek}array}
+
+  \vspace{1em}
+  You can't return an array in the naive way, but you can return the underlying pointer, but there is the scope thing
+  again
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Return types}
+
+  \vspace{.5em}
+  {\fontsize{18}{18}\selectfont{}\color{FeebleWeek}const}
+
+  \vspace{.5em}
+  returning const prevents things like rvalue assignments
+  
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={MyType}]
+MyType function(int,double);
+
+int main()
+{
+  // ...
+  function(4,5.) = x;
+}
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Call-by-value vs Call-by-reference}
+
+  Call-by-value is when you give your argument as a {\color{Marty}non-reference} type
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Can only get feedback from the return value
+    \item Function body can't manipulate input parameters
+    \item Input parameters are copied in memory
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Call-by-value vs Call-by-reference}
+
+  \begin{lstlisting}[basicstyle=\ttfamily]
+double half(double input)
+{
+  return input/2;
+}
+
+int main()
+{
+  double var = 5;
+  double half_of_var = half(var);
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Call-by-value vs Call-by-reference}
+
+  Call-by-reference is when you give your argument as a {\color{FeebleWeek}reference} type
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item The function can manipulate the arguments
+    \item No unnecessary copying of variables
+    \item A const reference is like a read-only argument\\
+      {\fontsize{10pt}{10pt}\selectfont{}\{but remember that copying base types is basically free\}}
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Call-by-value vs Call-by-reference}
+
+  \begin{lstlisting}[basicstyle=\ttfamily]
+void half(double & input)
+{
+  input /= 2;
+}
+
+int main()
+{
+  double var = 5;
+  half(var);
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Arrays as input}
+
+  \begin{lstlisting}
+double sum(const double arr[], int size) { ... }
+  \end{lstlisting}
+
+  \vspace{1em}
+  Arrays are automatically called by reference
+
+  \vspace{1em}
+  Can leave the array dimension unspecified
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Multi-dimensional arrays}
+
+  \begin{lstlisting}
+double print(const int array[][5][10]) { ... }
+  \end{lstlisting}
+
+  \vspace{1em}
+  Can {\color{Marty}only} leave the innermost size unspecified
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Recursive functions}
+
+  Functions can of course call other functions,\\including themselves
+
+  \vspace{1em}
+  A function calling itself is called {\color{Tropiteal}recursive}
+
+  \vspace{1em}
+  Recursive functions is like an advanced loop
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Recursive functions - example}
+
+  \only<2>{
+  \Highlight{alt return begin}{alt return end}
+  }
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+unsigned factorial(unsigned n)
+{
+  if (n < 2) { (*\tikzsupermark{alt return begin}*)
+    return 1;
+  } (*\tikzsupermark{alt return end}*)
+
+  return n * factorial(n-1);
+}
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \path (pic cs:alt return end,{(0,0)}) coordinate (a);
+    \node[anchor=south west, inner sep=0pt] at ([shift={(5cm,1.5ex)}] a) [scale=0.8] {Alternate return path};
+  \end{tikzpicture}
+  }
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Static variables}
+
+  Static variables aren't deleted when they go out of scope, but when the program exits
+
+  \vspace{.5em}
+  Their initialisation only happens the first time the block is run
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+int countCalls()
+{
+  static int times_called = 0;
+  ++times_called;
+  return times_called;
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Definition vs Declaration}
+
+  Every function must be declared before it is called
+
+  \vspace{1em}
+  But that doesn't mean you have to stick all your functions at the top of your C++ file
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Definition vs Declaration}
+
+  Function declaration:
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+void function(int, const double&(*\tikzmark{decl name}*));
+  \end{lstlisting}
+
+  {\fontsize{10pt}{10pt}\selectfont
+    Declare that the function exist, and define its signature, but not what it does
+  }
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([yshift=1.25ex] decl name) .. controls +(0,.5cm) and +(-.3cm,0) .. +(.5cm,.5cm)
+      node[right,scale=0.6] {Argument name optional};
+  \end{tikzpicture}
+
+  \vspace{1em}
+  Function definition:
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+void function(int x, const double & d)
+{
+  // ...
+}
+  \end{lstlisting}
+
+  {\fontsize{10pt}{10pt}\selectfont
+    Define what the function does when called
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Definition vs Declaration - example}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{12pt}{12pt}\selectfont]
+double square(double); (*\tikzmark{declaration}*)
+
+int main()
+{
+  double three = 3.;
+  auto nine = square(three);
+}
+
+double square(double d) (*\tikzmark{definition}*)
+{
+  return d*d;
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(.5cm,.5ex)}] declaration) -- +(1.5cm,0)
+      coordinate (arrow end)
+      node[right,scale=0.75] {Declaration};
+    \draw[pointy arrow] ([shift={(.5cm,.5ex)}] definition) -- +(1.5cm,0)
+      node[right,scale=0.75] {Definition};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Function overloading}
+
+  Possible to create multiple functions with\\the same name but different argument list
+
+  \vspace{.5em}
+  This is called {\color{Tropiteal}overloading}
+
+  \vspace{.5em}
+  \begin{lstlisting}
+int sum(int, int);
+int sum(int, int, int);
+double sum(double,double);
+double sum(double,double,double);
+  \end{lstlisting}
+
+  \vspace{.5em}
+  Helps create a consistent interface
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Function overloading - example}
+
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+double norm(double a, double b)
+{
+  return a*a + b*b;
+}
+
+double norm(double a, double b, double c)
+{
+  return a*a + b*b + c*c;
+}
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+double norm(double a, double b)
+{
+  return a*a + b*b;
+}
+
+double norm(double a, double b, double c)
+{
+  return norm(a,b) + c*c;
+}
+  \end{lstlisting}
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variadic functions}
+
+  Can also make a function with an undefined\\number of arguments
+
+  \vspace{1em}
+  These are called {\color{Tropiteal}variadic} functions
+
+  \vspace{1em}
+  But variadic functions in C aren't very pretty,\\so we will wait until we talk about templates
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variadic functions - sneak peek}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+template <typename... Arguments>
+double sum(double val1, Arguments... values)
+{
+  return val1 + sum(values...);
+}
+
+template<>
+double sum(double d)
+{
+  return d;
+}
+
+sum(-5.2, 12.5);
+sum(1, 4.5, 2.6, 9.4);
+  \end{lstlisting}
+
+  \CPPEleven
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variadic functions - sneak peek}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+template <typename... Arguments>
+double average(Arguments... values)
+{
+  auto number_of_arguments = sizeof...(values);
+  return sum(values...)/number_of_arguments;
+}
+
+average(5, 9, 0);
+average(1, 5, 1, 8, 3, 2, 2, 9);
+  \end{lstlisting}
+
+  \CPPEleven
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Default argument values}
+
+  A variant of function overloading is giving the arguments default values
+
+  \vspace{1em}
+  This should be done in the function declaration
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{12pt}{12pt}\selectfont]
+double integerPower(double, int = 2);
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Lambda functions}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+[(*\tikzmark{capture}*)...]((*\tikzmark{arg begin}*)double x, int n(*\tikzmark{arg end}*)){ (*\tikzmark{body}*)... }
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(1.4ex,2ex)}] capture) .. controls +(0,1cm) and +(-.75cm,0) .. +(.5cm,1.5cm)
+      node[right,align=left,scale=0.8]
+        {The capture list\\Gives the object more internal variables available in scope\\Allows for closures in C++};
+    \draw[transform canvas={yshift=-.25em},decorate,decoration={brace,amplitude=5pt,mirror},line width=1pt]
+      (arg begin) -- (arg end);
+    \draw[transform canvas={yshift=-.5cm},pointy arrow] ($(arg begin) !.5! (arg end)$) -- +(0,-1cm)
+      node[below,xshift=-1cm,scale=0.8] {The argument list};
+    \draw[pointy arrow] ([shift={(1.4ex,-.75ex)}] body) -- +(0,-2cm)
+      node[below,xshift=-1cm,scale=0.8] {The function body};
+  \end{tikzpicture}
+  }
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Lambda functions}
+
+  The lambda function is a function literal,\\so it must be assigned to a variable
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+auto sum = [](int a, int b) { return a + b; };
+
+int summed_value = sum(6,9);
+  \end{lstlisting}
+
+  \vspace{1em}
+  The return type is inferred from the code
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Lambda functions}
+
+  The argument types can also be inferred from context
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+auto sum = [](auto a, auto b) { return a + b; };
+
+int summed_value = sum(6, 9);
+double summed_floats = sum(5.6, 9.2);
+  \end{lstlisting}
+
+  \vspace{1em}
+  This is a pet example of templates at work
+
+  \CPPFourteen
+  
+\end{frame}
+
+\LiveFrame
+
+\section{Libraries}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Using other people's work}
+
+  There is no reason to reinvent the wheel\\every time you write a program
+
+  \vspace{1em}
+  You could of course write your own \lstinline!cos! function,\\but why would you do that?
+
+  \vspace{.2em}
+  {\footnotesize
+    \{you would probably never get it as efficient and safe either\}
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{Marty}\#include} statement}
+
+  The include command copies the content\\of the specified file into the current file
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{Marty}\#include} statement}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[draw, line width=.5pt,anchor=north] at ([shift={(-3cm,1.5cm)}]current page.center) (header) [scale=0.5] {%
+      \begin{minipage}{8cm}
+        \begin{lstlisting}
+
+int sum(int, int);
+int sum(int,int,int);
+double sum(double,double);
+
+int highFive();
+void sayHello();
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (header.north) [font=\ttfamily,scale=0.4] {header.hpp};
+
+    \node[anchor=south west] at ([yshift=.5cm] header.north west) (pre) [scale=0.75] {Before preprocessing};
+
+    \node[draw, line width=.5pt] at ([shift={(-3cm,-2.5cm)}]current page.center) (source) [scale=0.5] {%
+      \begin{minipage}{8cm}
+        \begin{lstlisting}
+
+#include "header.hpp"
+
+int main()
+{
+  auto total = sum(highFive(), 9);
+
+  // ...
+
+  for (auto i = 0; i < 10; ++i) {
+    sayHello();
+  }
+}
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (source.north) [font=\ttfamily,scale=0.4] {main.cpp};
+
+
+    \node[draw, line width=.5pt,anchor=north] at ([shift={(3cm,1.5cm)}]current page.center) (source post) [scale=0.5] {%
+      \begin{minipage}{8cm}
+        \begin{lstlisting}
+
+int sum(int, int);
+int sum(int,int,int);
+double sum(double,double);
+
+int highFive();
+void sayHello();
+
+int main()
+{
+  auto total = sum(highFive(), 9);
+
+  // ...
+
+  for (auto i = 0; i < 10; ++i) {
+    sayHello();
+  }
+}
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (source post.north) [font=\ttfamily,scale=0.4] {main.cpp};
+
+    \node[anchor=south west] at (pre.south -| source post.west) [scale=0.75] {After preprocessing};
+
+    \draw[dashed] ([yshift=-2cm] current page.north) -- +(0,-7cm);
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Header files and source files}
+
+  For larger projects one normally organises
+
+  \vspace{1em}
+
+  \begin{center}
+    \tikz{%
+      \node (decs) {declarations};
+      \node[right=2cm of decs] (header) {header files};
+      \draw[->,>=stealth,line width=1pt,shorten >=.3cm,shorten <=.3cm] (decs.east) -- (header.west);
+    }
+    
+    \vspace{1em}
+    \tikz{%
+      \node (defs) {definitions};
+      \node[right=2cm of defs] (source) {source files};
+      \draw[->,>=stealth,line width=1pt,shorten >=.3cm,shorten <=.3cm] (defs.east) -- (source.west);
+    }
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Header guards - Motivation}
+
+  Declaring a function more than once is illegal,\\but with all the includes it is hard to keep track
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{Marty}Error:} Nested includes}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[draw, line width=.5pt,anchor=north] at ([shift={(0,2.5cm)}]current page.center) (header1) [scale=0.5] {%
+      \begin{minipage}{10cm}
+        \begin{lstlisting}
+
+int sum(int, int);
+int sum(int,int,int);
+double sum(double,double);
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (header1.north) [font=\ttfamily,scale=0.4] {sum\_functions.hpp};
+
+    \node[draw, line width=.5pt,anchor=north, below=.4cm of header1.south] (header2) [scale=0.5] {%
+      \begin{minipage}{10cm}
+        \begin{lstlisting}
+
+#include "sum_functions.hpp"
+
+int highFive();
+void sayHello();
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (header2.north) [font=\ttfamily,scale=0.4] {utilities.hpp};
+
+    \node[draw, line width=.5pt,anchor=north, below=.4cm of header2.south] (main) [scale=0.5] {%
+      \begin{minipage}{10cm}
+        \begin{lstlisting}
+
+#include "sum_functions.hpp"
+#include "utilities.hpp"
+
+int main()
+{
+  auto total = sum(highFive(), 9);
+
+  // ...
+
+  for (auto i = 0; i < 10; ++i) {
+    sayHello();
+  }
+}
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (main.north) [font=\ttfamily,scale=0.4] {main.cpp};
+
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{Marty}Error:} Circular includes}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[draw, line width=.5pt,anchor=north] at ([shift={(0,2cm)}]current page.center) (header1) [scale=0.7] {%
+      \begin{minipage}{10cm}
+        \begin{lstlisting}
+
+#include "utilities.hpp"
+
+int sum(int, int);
+int sum(int,int,int);
+double sum(double,double);
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (header1.north) [font=\ttfamily,scale=0.6] {sum\_functions.hpp};
+
+    \node[draw, line width=.5pt,anchor=north, below=.75cm of header1.south] (header2) [scale=0.7] {%
+      \begin{minipage}{10cm}
+        \begin{lstlisting}
+
+#include "sum_functions.hpp"
+
+int highFive();
+void sayHello();
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (header2.north) [font=\ttfamily,scale=0.6] {utilities.hpp};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Header guards}
+
+  These issues can be resolved using header guards
+
+  \begin{overlayarea}{\textwidth}{6cm}
+      \begin{onlyenv}<1>
+        \vspace{.6cm}
+          \begin{center}
+              \begin{tikzpicture}
+                \node[draw, line width=.5pt,anchor=north] (header1) [scale=0.7] {%
+                  \begin{minipage}{10cm}
+                    \begin{lstlisting}
+    
+    #ifndef SUM_FUNCTIONS_H
+    #define SUM_FUNCTIONS_H
+    
+    int sum(int, int);
+    int sum(int,int,int);
+    double sum(double,double);
+    
+    #endif /* SUM_FUNCTIONS_H */
+                    \end{lstlisting}
+                  \end{minipage}
+                };
+    
+                \node[fill=WhiteTrash] at (header1.north) [font=\ttfamily,scale=0.6] {sum\_functions.hpp};
+                \node at ([yshift=.8cm] header1.north) [scale=0.8] {Old Style};
+              \end{tikzpicture}
+          \end{center}
+      \end{onlyenv}
+    
+      \begin{onlyenv}<2>
+          \begin{center}
+              \begin{tikzpicture}
+                \node[draw, line width=.5pt,anchor=north] (header1) [scale=0.7] {%
+                  \begin{minipage}{10cm}
+                    \begin{lstlisting}
+    
+    #pragma once
+    
+    int sum(int, int);
+    int sum(int,int,int);
+    double sum(double,double);
+                    \end{lstlisting}
+                  \end{minipage}
+                };
+    
+                \node[fill=WhiteTrash] at (header1.north) [font=\ttfamily,scale=0.6] {sum\_functions.hpp};
+                \node at ([yshift=.8cm] header1.north) [scale=0.8] {New Style};
+              \end{tikzpicture}
+          \end{center}
+      \end{onlyenv}
+  \end{overlayarea}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Header guards}
+
+  The old style:
+
+  \vspace{.5em}
+  {\color{Marty}Cons:} Need a unique name for all headers
+
+  \vspace{1em}
+  The new style:
+
+  \vspace{.5em}
+  {\color{FeebleWeek}Pros:} Easy to use, no extra names
+
+  \vspace{.5em}
+  {\color{Marty}Cons:} Compiler support not guaranteed\\
+  \hspace{1.2cm}{\footnotesize\{but the common compilers support it\}}
+
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{Marty}\#include\raisebox{-1pt}{""}} \;vs\; {\color{Marty}\#include<>}}
+
+  {\color{Marty}\#include\raisebox{-1pt}{""}}\\[.1cm]
+  {\fontspec{Yanone Kaffeesatz Regular}
+    Looks for the header files relative to the location of the source file
+  }
+
+  \vspace{1cm}
+  {\color{Marty}\#include<>}\\[.1cm]
+  {\fontspec{Yanone Kaffeesatz Regular}
+    Looks for the header files in the system include folders, e.g.\\
+    {\color{Tropiteal}/usr/include}, {\color{Tropiteal}/usr/local/include}, ...\\[.1cm]
+    Can add more include folders with the {\color{Tropiteal}-I} compiler flags
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Namespaces}
+
+  You can further organise your code by putting\\all your functions and classes into namespaces
+
+  \vspace{1em}
+  Namespaces {\color{FeebleWeek}scope} the names you create when declaring functions and classes
+
+  \vspace{1em}
+  We have already encountered the {\color{Tropiteal}std namespace} introduced by the standard libraries
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Namespaces}
+
+\begin{lstlisting}[escapeinside={(*}{*)}]
+namespace Summers {
+
+  int sum(int,int);
+
+  namespace Printers {
+
+    void prettyPrintSum(int,int);
+  }
+}
+
+int main()
+{
+  auto val = Summers::sum(5,1);
+
+  Summers::Printers::prettyPrintSum(10,5);
+}
+\end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Namespaces}
+
+  Without namespaces you would have to check if any names in external libraries
+  clashed with your every time you included a library
+
+  \vspace{1em}
+  C libraries often have absurdly long method names
+
+  \vspace{1em}
+  \begin{lstlisting}
+gsl_vector * vec = gsl_vector_alloc(5);
+gsl_multiroot_fsolver * s = gsl_multiroot_fsolver_alloc();
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Namespaces}
+
+  You can include a name from a namespace\\with the {\color{FeebleWeek}using} keyword
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+using std::cout, std::endl;
+  \end{lstlisting}
+
+  \vspace{1em}
+  Or an entire namespace {\color{Marty}(but never do this!)}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+using namespace Summers;
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{FeebleWeek}inline} functions}
+
+  To define a function in the header you\\have to declare it {\color{FeebleWeek}inline}
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+inline int sum(int a, int b)
+{
+  return a + b;
+}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  If not the linker will complain about duplicate definitions
+
+  
+\end{frame}
+
+\section{Compiling and Linking}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Steps of building a program}
+
+  \vspace*{-.5cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[simple uml node] (source) {Source Files\\[5pt]{\ttfamily [.cpp]}};
+      \node[simple uml node] [below=of source] (object) {Object Files\\[5pt]{\ttfamily [.o]}};
+      \node[simple uml node] [below=of object] (exec) {Executable\\[5pt]{\ttfamily [.out]}};
+      \draw[uml arrow] (source.south) -- (object.north);
+      \draw[uml arrow] (object.south) -- (exec.north);
+    
+      \uncover<1-2>{
+        \coordinate (mid source object) at ($(source) !.5! (object)$);
+        \node[simple uml node,fill=AtomicBikini] at ([xshift=5cm] mid source object) (preproc) {Preprocessor};
+        \node[simple uml node,fill=AtomicBikini] [below=of preproc] (compiler) {Compiler};
+        \draw[uml arrow, dashed]  (mid source object) -- (preproc.west);
+        \draw[uml arrow, dashed] (preproc.south) -- (compiler.north);
+
+        \uncover<2>{
+          \node[above=1.5cm of preproc.north west,anchor=west] [text width=7cm, scale=0.6] (preproc comm) {%
+            Copies {\ttfamily\#include} statements\\
+            Removes comments, etc.
+          };
+          \draw[dashed,-{Stealth[bend]},shorten >=0pt]
+            (preproc.north west) .. controls +(-.2cm,.2cm) and +(-.5cm,-.5cm) .. (preproc comm.south west);
+
+          \node[below=1.5cm of compiler.south west,anchor=west] [text width=6cm, scale=0.6] (compiler comm) {%
+            Translates source code to machine code and creates flags for the linker
+          };
+          \draw[dashed,-{Stealth[bend]}]
+            (compiler.south east) .. controls +(.3cm,-.3cm) and +(.3cm,.3cm) .. ([xshift=-.4cm] compiler comm.north east);
+        }
+      }
+
+      \uncover<3-4>{
+        \coordinate (mid object exec) at ($(object) !.5! (exec)$);
+        \node[simple uml node,fill=AtomicBikini] at ([xshift=5cm] mid object exec) (linker) {Linker};
+        \draw[uml arrow, dashed] (mid object exec) -- (linker.west);
+
+        \uncover<4>{
+          \node[above=2cm of linker.north west, anchor=west] [text width=6cm, scale=0.6] (linker comm) {%
+            Puts the executable\\together, filling in function definitions in the various source files
+          };
+          \draw[dashed,-{Stealth[bend]},shorten >=0pt]
+            (linker.north west) .. controls +(-.2cm,.2cm) and +(-.5cm,-.5cm) .. (linker comm.south west);
+        }
+      }
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Steps of building a program}
+
+  All of the above steps happen if you write
+
+  \vspace{.5em}
+  \begin{lstlisting}[language=bash,alsoletter={+}]
+g++ -o program source1.cpp source2.cpp
+  \end{lstlisting}
+
+  \vspace{1em}
+  Can use the \lstinline[language=bash]!-c! flag to compile only
+
+  \vspace{.5em}
+  \begin{lstlisting}[language=bash,escapeinside={(*}{*)},alsoletter={+}]
+g++ -o source1.o -c source1.cpp (*\tikzmark{compile 1}*)
+g++ -o source2.o -c source2.cpp (*\tikzmark{compile 2}*)
+g++ -o program source1.o source2.o (*\tikzmark{linking}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (compile begin) at ([shift={(.5cm,.3ex)}] compile 1);
+    \draw[pointy arrow] (compile begin) -- +(1.8cm,0)
+      coordinate (compile end)
+      node[right,scale=0.75] {compiling};
+    \coordinate (linking begin) at ([shift={(.5cm,.3ex)}] linking);
+    \draw[pointy arrow] (linking begin) -- (linking begin -| compile end)
+      node[right,scale=0.75] {linking};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Quick introduction to makefiles}
+
+  \only<1>{
+  We use a build manager to automatise this process
+
+  \vspace{1em}
+  Examples:
+
+  make, cmake, QMake, various IDE's, ...
+  }
+
+  \begin{onlyenv}<2>
+  A makefile is simply a list of ingredients and results for the various stages of compiling
+
+  \vspace{.5em}
+  \begin{lstlisting}[language=make,basicstyle=\ttfamily]
+result : ingredients
+    method to obtain
+  \end{lstlisting}
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Quick introduction to makefiles}
+
+  \begin{lstlisting}[language=gnumake,alsoletter={<,+},morekeywords={&<}]
+program : source1.o source2.o
+  g++ -o program source1.o source2.o
+
+source1.o : source1.cpp
+  g++ -o source1.o -c source1.cpp
+
+source2.o : source2.cpp
+  g++ -o source2.o -c source2.cpp
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Quick introduction to makefiles}
+
+  \begin{lstlisting}[language=gnumake,alsoletter={<,+},morekeywords={&<,SRCS,OBJS}]
+SRCS := $(wildcard *.cpp)
+OBJS := $(SRCS:%.cpp=obj/%.o)
+
+program : $(OBJS)
+  g++ $(OBJS) -o $@
+
+obj/%.o : %.cpp | obj
+  g++ -c $< -o $@
+
+obj :
+  @mkdir -p obj
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Compiling vs Linking}
+
+  When compiling the code is converted to machine code, but function definitions might still be missing
+
+  \vspace{1em}
+  These "holes" are filled when the program is linked and an executable is created
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Various types of errors}
+
+  There are in essence {\large\color{Marty}3} types of errors
+
+  \only<1>{\vspace{1em}}\only<2->{\vspace{.5em}}
+  { \setbeamercolor*{item}{fg=Marty}
+  \begin{enumerate}
+    \only<1>{\setlength\itemsep{1em}}\only<2->{\setlength\itemsep{.5em}}
+    \item Compile errors \tikzmark{compile error}
+    \only<2>{
+      \vspace{.3em}
+      \begin{itemize}
+        \item Syntactic errors
+        \item Template lookup errors
+        \item Type conversion errors
+      \end{itemize}
+    }
+    \item Linking errors \tikzmark{linking error}
+    \only<3>{
+      \vspace{.3em}
+      \begin{itemize}
+        \item Multiple definitions
+        \item Function definition not found
+      \end{itemize}
+    }
+    \item Runtime errors \tikzmark{runtime error}
+    \only<4>{
+      \vspace{.3em}
+      \begin{itemize}
+        \item Unexpected behaviour
+        \item Memory issues
+        \item Infinite loops
+      \end{itemize}
+    }
+  \end{enumerate}
+  }
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \only<2>{
+      \draw[transform canvas={shift={(3cm,1.5ex)}},decorate,decoration={brace,amplitude=5pt},line width=1pt]
+        (compile error) -- (linking error -| compile error)
+        node[midway,right=.2cm,scale=0.8,text width=5cm] {%
+          Normally easy to find with a good coding environment, comes with practice
+        };
+    }
+    \only<3>{
+      \draw[transform canvas={shift={(3cm,1.5ex)}},decorate,decoration={brace,amplitude=5pt},line width=1pt]
+        (linking error -| compile error) -- (runtime error -| compile error)
+        node[midway,right=.2cm,scale=0.8,text width=5cm] {%
+          A bit harder to find but in essence easy, also might require some practice
+        };
+    }
+    \only<4>{
+      \draw[transform canvas={shift={(3cm,1.5ex)}},decorate,decoration={brace,amplitude=5pt},line width=1pt]
+        (runtime error -| compile error) -- +(0,-8ex)
+        node[midway,right=.2cm,scale=0.8,text width=4cm] {%
+          This is the real killer, need more advanced tools
+        };
+    }
+  \end{tikzpicture}
+  
+\end{frame}
+
+\section{Debugging}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Runtime errors}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+int sumArray(int array[], unsigned size)
+{
+  unsigned index = 0;
+  int result = array[index];
+
+  do {
+    ++index;
+    result += array[index];
+  } while (index < size);
+
+  return result;
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Runtime errors}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+double volumeOfCone(double r, double h)
+{
+  static const double pi = 4*std::atan(1);
+  return static_cast<double>(1/3)*pi*r*r*h;
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Runtime errors}
+
+  \begin{lstlisting}
+void print(int ** array, unsigned size)
+{
+  for (int i = 0; i < size; ++i) {
+    for (int j = 0; i < size; ++i)
+      std::cout << array[i][j] << " ";
+
+    std::cout << std::endl;
+  }
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Runtime errors}
+
+  \begin{lstlisting}[basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont]
+// Allocate memory
+// Return: whether allocation was successful
+bool allocate(int *, unsigned size);
+
+void initialise(int * array, unsigned size, bool set_to_zero)
+{
+  //Only set to zero if allocation was successful
+  if (set_to_zero && allocate(array,size)) {
+    for (auto i = 0; i < size; ++i)
+      array[i] = 0;
+  }
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Runtime errors}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+unsigned factorial(unsigned n)
+{
+  unsigned result = 1;
+  while (n > 1) {
+    result *= --n;
+  }
+
+  return result;
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Runtime errors}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+unsigned f(unsigned n){return !n?1:--n*f(n);}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{"printf debugging"}
+
+  Print the current state of the variables
+
+  \hspace{1em}
+  \begin{lstlisting}[basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont,escapeinside={(*}{*)}]
+int sumArray(int array[], unsigned size)
+{
+  unsigned index = 0;
+  int result = array[index];
+
+  do {
+    std::cout << index << std::endl; (*\tikzmark{print1}*)
+    ++index;
+    result += array[index];
+  } while (index < size);
+
+  return result;
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(.2cm,.3ex)}] print1) -- +(2cm,0)
+      node[right,scale=0.8] {Here?};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{"printf debugging"}
+
+  Print the current state of the variables
+
+  \hspace{1em}
+  \begin{lstlisting}[basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont,escapeinside={(*}{*)}]
+int sumArray(int array[], unsigned size)
+{
+  unsigned index = 0;
+  int result = array[index];
+
+  do {
+    ++index;
+    std::cout << index << std::endl; (*\tikzmark{print2}*)
+    result += array[index];
+  } while (index < size);
+
+  return result;
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(.2cm,.3ex)}] print2) -- +(2cm,0)
+      node[right,scale=0.8] {Here?};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{"printf debugging"}
+
+  {\color{FeebleWeek}\large Advantage:}
+  \begin{itemize}
+    \item Requires no additional knowledge
+  \end{itemize}
+
+  \vspace{1em}
+  {\color{Marty}\large{}Disadvantage:}
+  { \setbeamercolor*{item}{fg=Marty}
+  \begin{itemize}
+    \item A very static way of debugging
+    \item Have to recompile every time
+    \item If you realise something mid debugging,\\there is no way out
+    \item Important information can be lost in output
+  \end{itemize}
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Assert statements}
+
+  An {\color{Tropiteal}assert} is a runtime test that terminate the program if it fails
+
+  \vspace{1em}
+  Enabled by including the {\ttfamily\color{sorange}<cassert>} library
+
+  \vspace{1em}
+  Can be disabled using the {\ttfamily\color{sorange}NDEBUG} preprocessor flag\\
+
+  \vspace{.5em}
+  \begin{tikzpicture}
+    \node (code) {%
+      \begin{minipage}{3.5cm}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+#define NDEBUG
+  \end{lstlisting}
+      \end{minipage}
+    };
+    \node[right=of code] (compiler) {%
+      \begin{minipage}{6cm}
+  \begin{lstlisting}[language=bash,alsoletter={+},deletekeywords={source}]
+g++ source.cpp -DNDEBUG    
+  \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node at ([xshift=-.8cm] compiler.west) [scale=.75] {or};
+  \end{tikzpicture}
+
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Assert statements}
+
+  \begin{lstlisting}[basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont,escapeinside={(*}{*)}]
+//Uncomment to disable
+//#define NDEBUG
+#include<cassert>
+
+int sumArray(int array[], unsigned size)
+{
+  unsigned index = 0;
+  int result = array[index];
+
+  do {
+    ++index;
+    assert(index < size); (*\tikzmark{assert}*)
+    result += array[index];
+  } while (index < size);
+
+  return result;
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(.2cm,.35ex)}] assert) -- +(2cm,0)
+      node[right,scale=0.75] {Check before accessing};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Assert statements}
+
+  This is safer than printing as we can terminate the program, but it is still not very dynamic
+
+  \vspace{1.5em}
+  To achieve a more dynamic debugging process,\\we will introduce dedicated debuggers
+
+\end{frame}
+
+\LiveFrame
+
+\section{Programming Practices}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Good Programming Practices}
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item Don't Repeat Yourself (stay DRY)
+    \item Write functions with a single responsibility
+    \item Make use of namespaces to keep the global scope clean
+    \item {\color{Marty}Never} include the std namespace
+    \item Use debuggers to find runtime errors
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Useless refactoring}
+
+  This is utterly useless...
+
+  \vspace{.5em}
+  \begin{lstlisting}
+int runProgram();
+
+int main()
+{
+  return runProgram();
+}
+
+int runProgram()
+{
+  //Everything that was in main
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\section{Recap}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Recap Day 2}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item Variable visibility and lifetime is governed by its scope
+    \item A function is a unit that {\color{FeebleWeek}does something}
+    \item Variables can be passed by value or reference
+    \item {\color{FeebleWeek}static} variables outlive their scope
+    \item One can separate definition and declaration
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Recap Day 2}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item Function declarations can be {\color{sorange}\#include} 'd
+    \item There are two steps to building a program: {\color{Tropiteal}compiling} and {\color{FeebleWeek}linking}
+    \item We have three types of errors:\\{\color{Marty}compiling}, {\color{Marty}linking} and {\color{Marty}runtime}
+    \item Dedicated debuggers can be used to find\\runtime errors
+  \end{itemize}
+  
+\end{frame}
+
+\end{document}

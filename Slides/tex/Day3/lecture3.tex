@@ -1,0 +1,1725 @@
+\documentclass[14pt,a4paper,dvipsnames,usenames]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{amsmath,varwidth}
+\usepackage{tikz,tikz-uml,xparse}
+\usepackage{listings,algpseudocode}
+\usepackage[quiet]{mathspec}
+\usepackage{textcomp}
+
+\setmainfont[
+  ItalicFont={Yanone Kaffeesatz Light},
+  Scale=1.3,
+  LetterSpace=2.0
+]{Yanone Kaffeesatz Bold}
+
+\setmonofont{Hack}
+
+\input{style.tex}
+\input{defs.tex}
+\input{funcs.tex}
+
+\usefonttheme{serif}
+
+%\setbeameroption{show notes}
+
+\title[C++ Day3]{Introduction to the C++\newline{}Programming Language\newline{}\newline{}\fontsize{16pt}{16pt}\selectfont{}Day 3}
+\author{\texorpdfstring{%
+    Jonas Rylund Glesaaen\newline\fontsize{12pt}{12pt}\selectfont\texttt{jonas@glesaaen.com}%
+  }{%
+    Jonas Rylund Glesaaen}}
+\date{September 30th 2015}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{What will we learn?}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item \StrikeThrough{Basic C++ syntax}
+    \item \StrikeThrough{Control structures}
+    \item \StrikeThrough{Functions}
+    \item Structs and classes \hspace{.25cm}{\color{Marty}(today and Thursday)}
+    \item Templates and STL \hspace{.5cm}{\color{Tropiteal}(Thursday and Friday)}
+    \item Exceptions \hspace{.5cm}{\color{Tropiteal}(Friday)}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Today's topics}
+
+  \tableofcontents
+  
+\end{frame}
+
+\section{Dynamic Memory Management}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[plain]
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \fill[Marty] (current page.north east) rectangle (current page.south west);
+    \node at ([yshift=-.25em] current page.center) [font=\LARGE, WhiteTrash] {Disclaimer};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Compile time \:vs\: runtime}
+
+  {\large\color{FeebleWeek}Compile time}\,:\\[3pt]
+  Things known/decided when the program is compiled, before it is ever run, also known at runtime
+
+  \tikzmark{middle}
+
+  \vspace{1em}
+  {\large\color{Marty}Runtime}\,:\\[3pt]
+  Things known/decided as the program is run,\\not known at compile time
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Two types of memory management}
+
+  So far we have programmed using automatic memory management:
+
+  \vspace{.5em}
+  \begin{itemize}
+    \item The memory need of every individual object is known at compile time
+  \end{itemize}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+double array[100(*\tikzmark{array size}*)];
+  \end{lstlisting}
+
+  \vspace{1em}
+  \begin{itemize}
+    \item Cannot change the size after initialisation
+  \end{itemize}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-1.4ex,-.25ex)}] array size) .. controls +(0,-1.2cm) and +(-1cm,0) .. +(2cm,.5ex)
+      node[right,scale=0.8,align=left] {Known by the compiler,\\is a constant expression};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Two types of memory management}
+
+  Managing memory at runtime is called\\dynamic memory management
+
+  \vspace{.5em}
+  {\color{FeebleWeek}\large Advantage:}
+  \begin{itemize}
+    \item More flexible than automatic memory management
+  \end{itemize}
+
+  \vspace{.5em}
+  {\color{Marty}\large{}Disadvantage:}
+  { \setbeamercolor*{item}{fg=Marty}
+  \begin{itemize}
+    \item Compiler cannot optimise your code as well
+  \end{itemize}
+  }
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructing memory at runtime}
+
+  Use {\color{FeebleWeek}new} expressions to create memory
+
+  \vspace{.5em}
+
+  \hspace{1em}{\ttfamily\color{sgreen}new} \hspace{.5em} type \hspace*{.5em} {\ttfamily\{} \:constructor arguments\:
+  {\ttfamily\};}\tikzmark{constructor}
+
+  \vspace{1em}
+  The expression returns a pointer to the memory location that was created
+
+  \vspace{1em}
+  Memory allocated this way is not limited by its scope\\
+  {\footnotesize\{but the associated pointer is\}}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-1.5ex,1.75ex)}] constructor) -- +(0,1cm)
+      node[above,align=left,scale=0.6,xshift=1cm] {C++11 Style\\Constructor Braces};
+  \end{tikzpicture}
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructing memory at runtime}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+int * iptr;
+iptr = new int {5};
+
+auto dptr = new double {5.1};
+*dptr = 2.16;
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructing memory at runtime}
+
+  Might seem a bit pointless at the moment but it will be more important as we later discuss polymorphism and data ownership
+
+  \vspace{1em}
+  It also adds flexibility to our programming
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{No more free cleanup}
+
+  Dynamic memory isn't limited by scope
+  
+  \vspace{1em}
+  So how is it cleaned up when it is no longer needed?
+
+  \uncover<2>{
+  \vspace{1em}
+  We have to do it \;\raisebox{2pt}{\ttfamily\bfseries\color{Marty}(;\_;)}
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{No more free cleanup}
+
+  A fun little program
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{12pt}{12pt}\selectfont]
+int main()
+{
+  while (true) {
+    new int {0};
+  }
+}
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{No more free cleanup}
+
+  Clean up memory with {\color{Marty}delete} expressions
+
+  \vspace{.5em}
+  \hspace{1em}{\ttfamily\color{sgreen}delete} \hspace{.2em} pointer to memory {\ttfamily;}
+
+  \vspace{1.5em}
+  {\color{FeebleWeek}new} and {\color{Marty}delete} must always come in pairs,\\
+  otherwise you have memory leaks
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{No more free cleanup}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+int main()
+{
+  auto dynamic_memory = new int {4};
+
+  // Carry out the program
+
+  delete dynamic_memory;
+}
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Creating arrays}
+
+  More immediate value with arrays
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+auto array = new int [10(*\tikzmark{array size}*)];
+  \end{lstlisting}
+
+  \begin{uncoverenv}<2>
+  \vspace*{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]]
+// ...
+
+delete [] array;
+  \end{lstlisting} 
+  \end{uncoverenv}
+
+  \only<1>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-1ex,-.5ex)}] array size) .. controls +(0,-1cm) and +(1cm,0) .. +(-2cm, -1.5cm)
+      node[right,scale=0.8,align=left,anchor=east] {Does not need to be a\\compile time constant};
+  \end{tikzpicture}
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Creating arrays}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+int main()
+{
+  unsigned size {1};
+  std::cout << "Array size: ";
+  std::cin >> size;
+
+  auto array = new int [size];
+  
+  //...
+  delete [] array;
+}
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Multi dimensional arrays}
+
+  Can also do dynamic multi dimensional arrays
+
+  \vspace{1em}
+  Multi dimensional arrays are just arrays of arrays
+
+  \vspace{.5em}
+  Type of 2D {\color{FeebleWeek}int} array: \hspace{.5em} \lstinline!int**!
+
+  \vspace{.5em}
+  Type of 4D {\color{FeebleWeek}float} array: \hspace{.5em} \lstinline!float****!
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Multi dimensional arrays}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont]
+float** createArray(unsigned size_x, unsigned size_y)
+{
+  auto array = new float* [size_x];
+
+  for (auto i = 0; i < size_x; ++i) {
+    array[i] = new float [size_y];
+
+    for (auto j = 0; j < size_y; ++j) {
+      array[i][j] = 0.;
+    }
+  }
+
+  return array;
+}
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Multi dimensional arrays}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont]
+void deleteArray(float ** array, unsigned size_x)
+{
+  for (auto i = 0; i < size_x; ++i) {
+    delete [] array[i];
+  }
+
+  delete [] array;
+}
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Welcome to Memory Leak City}
+
+  {\ttfamily {\color{Tropiteal}population} += {\color{Tropiteal}you};}
+
+  \vspace{1em}
+
+  If you believe that you are able to perfectly manage your own memory you are {\color{Marty}wrong}
+  {\fontsize{8pt}{8pt}\selectfont \{I've tried as well\}}
+
+  \vspace{1em}
+  There are so many things that can go wrong
+
+  \vspace{1em}
+  We will look at some options in the exercises and on the final day
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Debugging memory leaks}
+
+  There are many tools available for debugging memory issues, but one of the best known ones is {\color{Tropiteal}valgrind}
+
+  \vspace{1em}
+  Valgrind checks for things such as
+  
+  \vspace{.3em}
+  \begin{itemize}
+    \setlength\itemsep{.3em}
+    \item Reading out of bounds
+    \item Using undefined values
+    \item Double freeing of memory
+    \item Memory leaks
+  \end{itemize}
+  
+\end{frame}
+
+\section{Object Oriented Programming}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{What exactly is OO?}
+
+  Object oriented programming is a programming paradigm where one focuses on objects rather than methods.
+
+  \vspace{.5cm}
+  One organises the code into objects and interfaces, defining how they interact with each other and how they can be manipulated.
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{What exactly is OO? - example}
+
+  An {\color{FeebleWeek}Address Book} is
+
+  \begin{itemize}
+    \item made up of addresses
+  \end{itemize}
+
+  \vspace{.5em}
+  And one can manipulate it in multiple ways
+
+  \begin{itemize}
+    \item Add addresses
+    \item Remove addresses
+    \item Search for addresses
+    \item Copy your friends' books
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{What exactly is OO? - example}
+
+  \begin{lstlisting}[
+    escapeinside={(*}{*)},
+    basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont,
+    morekeywords={AddressBook,string,Address,list}]
+class AddressBook
+{
+public:
+  void addAddress(Address new_address);
+  void removeAddress(int address_id);
+  Address search(std::string search_string) const;
+  void copyAddresses(const AddressBook & other_book);
+
+private:
+  std::list<Address> addresses;
+};
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Aggregate containers}
+
+  Can use the {\color{FeebleWeek}struct} keyword to declare a new\\type that is a combination of other types
+
+  \vspace{.3em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={string,Address}]
+struct Address
+{
+  std::string name;
+  std::string street_name;
+  unsigned street_number;
+  unsigned zip_code;
+}; (*\tikzmark{semicolon}*)
+  \end{lstlisting}
+
+  \vspace{.3em}
+  This is a great organisational tool to help\\express yourself when writing code
+
+  \begin{onlyenv}<2>
+    \nointerlineskip
+    \begin{tikzpicture}[overlay,remember picture]
+      \draw[pointy arrow,line width=.5pt] ([shift={(.2cm,.3ex)}] semicolon) -- +(4cm,0)
+        node[right,scale=0.8,Marty] {Don't forget the semicolon};
+    \end{tikzpicture}
+  \end{onlyenv}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Aggregate containers}
+  \begin{overlayarea}{\textwidth}{7cm}
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+struct Coordinate (*\tikzmark{decl begin}*)
+{
+  double x, y, z;
+}; (*\tikzmark{decl end}*)
+
+int main()
+{
+  Coordinate edge;
+  edge.x = 4.5;
+  edge.y = 0.0;
+  edge.z = 9.1;
+
+  //...
+}
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+struct Coordinate
+{
+  double x, y, z;
+};
+
+int main()
+{
+  Coordinate edge {4.5, 0.0, 9.1};(*\tikzmark{initialiser list}*)
+
+  //...
+}
+  \end{lstlisting}
+  \end{onlyenv}
+  \end{overlayarea}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \only<1>{
+      \coordinate (begin decl) at ([shift={(1cm,1ex)}] decl begin);
+      \draw[decorate,decoration={brace,amplitude=5pt},line width=1pt]
+        (begin decl) -- (decl end -| begin decl)
+        node[midway,right=.2cm,scale=0.8,text width=5cm] {%
+          Type declaration
+        };
+    }
+    \only<2>{
+      \draw[pointy arrow] ([shift={(-5.45ex,-.5ex)}] initialiser list) -- +(0,-1cm)
+        node[below,align=center,scale=0.8] {Construction with initialiser list\\Order as in type declaration};
+    }
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Class members - variables}
+
+  The variables in type declarations are called\\member variables
+
+  \vspace{.5em}
+  When accessed they can be used as any other\\variable of the same type
+
+  \vspace{.5em}
+  \begin{lstlisting}[morekeywords={Coordinate},escapeinside={(*}{*)}]
+int main()
+{
+  Coordinate endp {9.4, 8.2, -3.4};
+  auto dist = norm(endp.x, endp.y, endp.z);(*\tikzmark{norm}*)
+}
+  \end{lstlisting}
+
+  
+  \begin{onlyenv}<2>
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-5.7cm,-.5ex)}] norm) .. controls +(0,-.5cm) and +(-.5cm,0) .. +(.5cm,-.75cm)
+      node[right,align=left,scale=0.75] {%
+        Could overload {\ttfamily\color{sblue} norm} to\\accept a {\ttfamily\color{sgreen} Coordinate} object
+      };
+  \end{tikzpicture}
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Class members - functions}
+  
+  The Real\texttrademark \,Object Oriented Programming starts here
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Class members - functions}
+
+  Classes can also have functions as members
+
+  \Highlight[opacity=0.15,TealDrop]{memfunc begin}{memfunc end}
+  
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  double x, y, z;
+
+  double norm() const (*\tikzsupermark{memfunc begin}*)
+  {
+    return std::sqrt(x*x + y*y + z*z);
+  } (*\tikzsupermark{memfunc end}*)
+};
+  \end{lstlisting}
+
+  \vspace{.5em}
+  {\fontsize{12pt}{12pt}\selectfont The member variables are "in scope" of the member functions}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Class members - functions}
+
+  The function is bound to the object calling it
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+int main()
+{
+Coordinate edge {4, 2, 1};
+Coordinate point {-1, 6, 2};
+
+double length = edge.norm(); (*\tikzmark{edge call}*)
+double distance = point.norm(); (*\tikzmark{point call}*)
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (edge point) at ([yshift=.3ex] edge call);
+    \draw[pointy arrow,line width=.5pt] (edge point) -- +(2cm,0)
+      coordinate (edge end)
+      node[right,scale=0.75,font=\ttfamily] {4.58...};
+    \coordinate (point point) at ([yshift=.3ex] point call);
+    \draw[pointy arrow,line width=.5pt] (point point) -- (point point -| edge end)
+      node[right,scale=0.75,font=\ttfamily] {6.40...};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Declaration and definition}
+
+  Special syntax for defining member functions
+
+  \begin{overlayarea}{\textwidth}{6cm}
+  \begin{onlyenv}<1>
+    \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  double x, y, z;
+
+  double norm() const
+  {
+    return std::sqrt(x*x + y*y + z*z); (*\tikzmark{inline member}*)
+  }
+};
+    \end{lstlisting}
+
+    \nointerlineskip
+    \begin{tikzpicture}[overlay,remember picture]
+      \draw[pointy arrow] ([shift={(.5cm,.3ex)}] inline member) .. controls +(1cm,0) and +(1cm,0) .. +(-.5cm,-1.2cm)
+        node[anchor=east,left,scale=0.8] {%
+          Automatically {\color{FeebleWeek}inline} function
+        };
+    \end{tikzpicture}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+    \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  double x, y, z;
+
+  double norm() const;
+};
+
+double Coordinate::norm() const
+{
+  return std::sqrt(x*x + y*y + z*z);
+}
+    \end{lstlisting}
+  \end{onlyenv}
+  \end{overlayarea}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Encapsulation}
+
+  Encapsulation is the concept of separating the outward functionality of a class from the inner workings of it
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Encapsulation - example}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+private:
+  //...
+
+public:
+  void setCartesian(double x, double y);
+  void setPolar(double r, double phi);
+  double norm() const;
+};
+  \end{lstlisting}
+
+  \vspace{.5em}
+  {\fontspec{Yanone Kaffeesatz Regular}
+    It is not important for someone using the class whether the coordinate
+    is stored in the polar or Cartesian coordinate system
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Encapsulation - example}
+
+  \begin{tikzpicture}
+    \node[draw, line width=.5pt,anchor=north] (impl1) [scale=0.5] {%
+      \begin{minipage}{9cm}
+        \begin{lstlisting}[morekeywords={Coordinate}]
+
+class Coordinate
+{
+private:
+  double radius, angle;
+
+public:
+  void setCartesian(double x, double y)
+  {
+    radius = std::sqrt(x*x + y*y);
+    angle = std::atan(y/x);
+  }
+
+  void setPolar(double r, double phi)
+  {
+    radius = r;
+    angle = phi;
+  }
+
+  double norm() const
+  {
+    return radius;
+  }
+};
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (impl1.north) [font=\ttfamily,scale=0.4] {Implementation \#1};
+
+    \node[draw, line width=.5pt] [right=of impl1.north east, anchor=north west] (impl2) [scale=0.5] {%
+      \begin{minipage}{9.5cm}
+        \begin{lstlisting}[morekeywords={Coordinate}]
+
+class Coordinate
+{
+private:
+  double x_comp, y_comp;
+
+public:
+  void setCartesian(double x, double y)
+  {
+    x_comp = x;
+    y_comp = y;
+  }
+
+  void setPolar(double r, double phi)
+  {
+    x_comp = r * std::cos(phi);
+    y_comp = r * std::sin(phi);
+  }
+
+  double norm() const
+  {
+    return std::sqrt(
+      x_comp*x_comp + y_comp*y_comp);
+  }
+};
+        \end{lstlisting}
+      \end{minipage}
+    };
+
+    \node[fill=WhiteTrash] at (impl2.north) [font=\ttfamily,scale=0.4] {Implementation \#2};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Encapsulation - example}
+
+  For someone using the {\color{FeebleWeek}Coordinate} class\\these two implementations are identical
+
+  \vspace{1em}
+  Thus we can switch between the two without worrying that the rest of our program will change
+
+  \vspace{1em}
+  Encapsulation adds {\color{Marty}flexibility}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Access levels}
+
+  Class access levels facilitate encapsulation in C++
+
+  \vspace{.5em}
+  There are \:{\large\color{FeebleWeek}3}\: access levels in C++
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item public\\
+      {\fontsize{12pt}{12pt}\selectfont Accessible by everyone}
+    \item private\\
+      {\fontsize{12pt}{12pt}\selectfont Only accessible by other members and friends}
+    \item protected\\
+      {\fontsize{12pt}{12pt}\selectfont Accessible by children classes}
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Access levels}
+
+  Cannot access private members from the outside
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+private:
+  double x, y;
+};
+
+int main()
+{
+  Coordinate c;
+  c.x = 5;
+}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  {\color{Marty}This will not compile}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{class \,vs\, struct}
+
+  The only difference between {\color{FeebleWeek}class} and {\color{FeebleWeek}struct} in C++
+
+  \vspace{.5em}
+  \hspace{1cm}Classes are {\color{Marty}private} by default
+
+  \vspace{.5em}
+  \hspace{1cm}Structs are {\color{FeebleWeek}public} by default
+
+  \vspace{1em}
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Container}]
+struct Container
+{
+  double x; (*\tikzmark{struct x}*)
+};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(0,.3ex)}] struct x) -- +(2cm,0)
+      node[right,scale=0.75] {x is public};
+  \end{tikzpicture}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Container}]
+class Container
+{
+  double x; (*\tikzmark{class x}*)
+};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(0,.3ex)}] class x) -- +(2cm,0)
+      node[right,scale=0.75] {x is private};
+  \end{tikzpicture}
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{class \,vs\, struct}
+
+  For readability one makes the distinction anyway
+
+  \vspace{1em}
+  {\large\color{FeebleWeek}struct}\\
+  congregate data structure
+
+  \vspace{1em}
+  {\large\color{FeebleWeek}class}\\
+  encapsulated type with an interface
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Friendship}
+
+  {\color{FeebleWeek}friend}s of classes can access their private members
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+friend double norm(const Coordinate &); 
+
+private:
+  double x, y;
+};
+
+double norm(const Coordinate & c) 
+{
+  return std::sqrt(c.x*c.x + c.y*c.y);
+} 
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Constructor}
+
+  The constructor is the function that is called when the object is initialised
+
+  \vspace{1em}
+  There are \,{\large\color{Tropiteal}3}\, types of default constructors
+  
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Default constructor\\
+      {\fontspec{Yanone Kaffeesatz Regular} Calls the default constructor on all members}
+    \item Copy constructor\\
+      {\fontspec{Yanone Kaffeesatz Regular} Copies all nonstatic members}
+    \item Move constructor {\footnotesize\color{Tropiteal}\{C++11\}}
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructor}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+private:
+  double x, y;
+};
+
+int main()
+{
+  Coordinate c1; (*\tikzmark{call 1}*)
+
+  Coordinate c2 {c1}; (*\tikzmark{call 2}*)
+
+  Coordinate c3 = c2; (*\tikzmark{call 3}*)
+
+  auto c4 = Coordinate {}; (*\tikzmark{call 4}*)
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (call1 begin) at ([yshift=.3ex] call 1);
+    \draw[pointy arrow] (call1 begin) -- +(3cm,0)
+      coordinate (call1 end)
+      node [right,scale=0.75] {Default constructor};
+    \coordinate (call2 begin) at ([yshift=.3ex] call 2);
+    \draw[pointy arrow] (call2 begin) -- (call2 begin -| call1 end)
+      node [right,scale=0.75] {Copy constructor};
+    \coordinate (call3 begin) at ([yshift=.3ex] call 3);
+    \draw[pointy arrow] (call3 begin) -- (call3 begin -| call1 end)
+      node [right,scale=0.75] {Copy constructor};
+    \coordinate (call4 begin) at ([yshift=.3ex] call 4);
+    \draw[pointy arrow] (call4 begin) -- (call4 begin -| call1 end)
+      node [right,scale=0.75] {Default constructor};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructor}
+
+  We can change their behaviour
+
+  \begin{overlayarea}{\textwidth}{6cm}
+    \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  Coordinate()
+  {
+    x = 0.0; (*\tikzmark{x val}*)
+    y = 0.0; (*\tikzmark{y val}*)
+  }
+
+private:
+  double x, y;
+};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (default begin) at ([yshift=1.5ex] x val);
+    \coordinate (default end) at ([yshift=-.5ex] y val);
+    \draw[transform canvas={xshift=2cm},decorate,decoration={brace,amplitude=5pt},line width=1pt]
+      (default begin) -- (default end)
+      node[midway,right=.5em,scale=0.75,align=left] {%
+        Should always initialise\\built in types with a default value
+      };
+  \end{tikzpicture}
+
+    \end{onlyenv}
+
+    \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  Coordinate()
+    : x {0.0},
+      y {0.0}
+  {}
+
+private:
+  double x, y;
+};
+  \end{lstlisting}
+    \end{onlyenv}
+  \end{overlayarea}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructor}
+
+  ...or we can declare new constructors
+
+  \vspace{.3em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  Coordinate(double x0, double y0)
+    : x {x0},
+      y {y0}
+  {}
+
+private:
+  double x, y;
+};
+  \end{lstlisting}
+
+
+  \vspace{.3em}
+  \uncover<2>{\fontspec{Yanone Kaffeesatz Regular}
+    {\color{Marty}Note:} if you declare your own constructor, the default constructor will not be automatically generated any more
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructor}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+int main()
+{
+  Coordinate c1 {5.2, 9.1}; (*\tikzmark{new construct}*)
+
+  Coordinate c2; (*\tikzmark{default}*)
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([yshift=.3ex] new construct) -- +(1cm,0)
+      coordinate (new end)
+      node [right, scale=0.75] {Calls our new constructor};
+    \coordinate (default begin) at ([yshift=.3ex] default);
+    \draw[pointy arrow] (default begin) -- (default begin -| new end)
+      node [right, scale=0.75] {{\color{Marty}Error:} no such constructor};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructor - default}
+
+  but we can reinstate the default constructors
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  Coordinate(double x0, double y0)
+    : x {x0},
+      y {y0}
+  {}
+
+  Coordinate() = default;
+  Coordinate(const Coordinate &) = default;
+
+private:
+  double x, y;
+};
+  \end{lstlisting}
+
+
+  \CPPEleven
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructor - delete}
+
+  and we can delete them if we don't want them
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate,delete}]
+class Coordinate
+{
+public:
+  Coordinate(double x0, double y0)
+    : x {x0},
+      y {y0}
+  {}
+
+  Coordinate(const Coordinate &) = delete;
+  Coordinate(Coordinate &&) = delete;
+
+private:
+  double x, y;
+};
+  \end{lstlisting}
+
+  \CPPEleven
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Implicit conversions}
+
+  A constructor taking only one argument can be used by the compiler for conversions
+  
+  \vspace{.3em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+class SomeClass
+{
+public:
+  SomeClass(double);
+};
+  \end{lstlisting}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={SomeClass}]
+void someFunction(SomeClass);
+
+int main()
+{
+  someFunction(2.45);
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Implicit conversions}
+
+  \begin{onlyenv}<1>
+  These can be disabled by the {\color{FeebleWeek}explicit} keyword
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+class SomeClass
+{
+public:
+  explicit SomeClass(double);
+};
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  {\color{Marty}Pitfall:}\\Constructors with default arguments can also be used
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+class SomeClass
+{
+public:
+  explicit SomeClass(double, double = 2.4);
+};
+  \end{lstlisting}
+  \end{onlyenv}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{lvalues and rvalues}
+
+  \begin{center}
+    \begin{tikzpicture}[every node/.style={scale=1.5}]
+      \node[draw, line width=2pt, FeebleWeek] (rvalue) {lvalue};
+      \node[right=of rvalue] (eq) {=};
+      \node[draw, line width=2pt, Marty] [right=of eq] {rvalue};
+    \end{tikzpicture}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{lvalues and rvalues}
+
+  {\large\color{Marty} lvalue}\\
+  An lvalue is an object that persists after a single expression, can be at the left hand side of an assignment operator
+
+  \vspace{1em}
+  {\large\color{Marty} rvalue}\\
+  An rvalue is a temporary object that do not persist after the expression, can only be at the right hand side of an assignment
+  operator
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{lvalue and rvalue references}
+
+  Normal references are lvalue references\\[3pt]
+  \hspace{1em} {\color{FeebleWeek}type} {\ttfamily \&}
+  
+
+  \vspace{1em}
+  rvalue references are a way to signal that we don't intend to use the object after that point\\[3pt]
+  \hspace{1em} {\color{FeebleWeek}type} {\ttfamily \&\&}
+
+  \vspace{.5em}
+  Convert lvalue reference to rvalue reference with the \lstinline!std::move! function in 
+  {\ttfamily\color{sorange}<utility>}
+  
+  \CPPEleven
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Move constructors}
+
+  \Highlight[opacity=0.15,TealDrop]{move constructor begin}{move constructor end}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={MemoryManager}]
+class MemoryManager
+{
+public:
+  MemoryManager(const MemoryManager & copy)
+    : d_ptr {new double {*(copy.d_ptr)}} {}
+
+  MemoryManager(MemoryManager && move) (*\tikzsupermark{move constructor begin}*)
+    : d_ptr {move.d_ptr}
+  {
+    move.d_ptr = nullptr;
+  } (*\tikzsupermark{move constructor end}*)
+
+private:
+  double * d_ptr;
+};
+  \end{lstlisting}
+
+  \CPPEleven
+\end{frame}
+
+\begin{frame}
+  \frametitle{Destructor}
+
+  The destructor is the function that is called when the object goes out of scope
+
+  \vspace{.5em}
+  It will always automatically call the destructor of all the class' members,
+  but you can add additional functionality
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Destructor - example}
+
+  \Highlight[opacity=0.15,TealDrop]{d begin}{d end}
+  
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={MemoryManager}]
+class MemoryManager
+{
+public:
+  MemoryManager() = default;
+  MemoryManager(const MemoryManager &);
+
+  ~MemoryManager() (*\tikzsupermark{d begin}*)
+  {
+    delete d_ptr;
+  } (*\tikzsupermark{d end}*)
+
+private:
+  double * d_ptr;
+};
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Operator overloading}
+
+  It is also possible to define how your class behaves together with all the operators of C++
+
+  \vspace{1em}
+  What should \lstinline[morekeywords={Coordinate}]!Coordinate+Coordinate! do?
+
+  \vspace{1em}
+  What should \lstinline[morekeywords={Coordinate}]!Coordinate*Coordinate! do?
+
+  \vspace{1em}
+  What about \lstinline[morekeywords={Coordinate}]!++Coordinate! ?
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operator overloading - arithmetic}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate},basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont]
+class Coordinate
+{
+public:
+  Coordinate operator+(const Coordinate & rhs) const
+  {
+    auto result = *this; (*\tikzmark{this}*)
+    result.x += rhs.x;
+    result.y += rhs.y;
+    result.z += rhs.z;
+    
+    return result;
+  }
+};
+  \end{lstlisting}
+
+  \vspace{.2em}
+  {\fontspec{Yanone Kaffeesatz Regular}
+    For member function declarations the calling object is always on the left hand
+    side of the operator for two variable operators
+  }
+
+  \begin{onlyenv}<2>
+    \nointerlineskip
+    \begin{tikzpicture}[overlay,remember picture]
+      \draw[pointy arrow, line width=.5] ([yshift=.25ex] this) -- +(1cm,0)
+      node [right,scale=0.6,align=left,yshift=-1ex] {%
+        {\color{FeebleWeek}this} is a pointer to the\\object calling the function
+      };
+    \end{tikzpicture}
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operator overloading - arithmetic}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate},basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont]
+class Coordinate
+{
+friend Coordinate operator+(
+  const Coordinate &, const Coordinate &);
+};
+
+Coordinate operator+(
+  const Coordinate &lhs, const Coordinate &rhs)
+{
+  auto result = lsh;
+  result.x += rhs.x;
+  result.y += rhs.y;
+  result.z += rhs.z;
+  
+  return result;
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Order matters}
+
+  Just as in mathematics, argument order matters
+
+  \vspace{.3em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  Coordinate operator*(double);
+};
+
+int main()
+{
+  Coordinate distance {4.5, 9.0};
+
+  auto twice = distance * 2; (*\tikzmark{twice}*)
+  auto thrice = 3 * distance; (*\tikzmark{thrice}*)
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (twice begin) at ([yshift=.35ex] twice);
+    \draw[pointy arrow] (twice begin) -- +(1.5cm,0)
+      coordinate (twice end)
+      node[right, scale=0.75] {OK};
+    \coordinate (thrice begin) at ([yshift=.35ex] thrice);
+    \draw[pointy arrow] (thrice begin) -- (thrice begin -| twice end)
+      node[right, scale=0.75] {{\color{Marty}Error:} not defined};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operator overloading - assignment}
+
+  The assignment operator is also automatically generated by the compiler if not explicitly declared
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  Coordinate& operator=(const Coordinate &);
+  Coordinate& operator=(Coordinate &&);
+};
+  \end{lstlisting}
+
+  \vspace{.5em}
+  Should return a reference to {\color{FeebleWeek}this}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operator overloading - stream}
+
+  \only<1>{
+    Change printing behaviour by overloading the\\bitshift operator for stream objects
+  }
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate,ostream}]
+class Coordinate
+{
+friend std::ostream& operator<<(
+  std::ostream&, const Coordinate &);
+};
+
+std::ostream& operator<<(
+  std::ostream & out, const Coordinate & c)
+{
+  out << "{" << c.x << ","
+    << c.y << "," << c.z << "}";
+  
+  return out;
+}
+  \end{lstlisting}
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Pre- and post increment}
+
+  {\large Pre increment} \; \lstinline!++object!\\[5pt]
+  Returns the value the object has {\color{FeebleWeek}after} it has been incremented
+
+
+  \vspace{1em}
+  {\large Post increment} \; \lstinline!object++!\\[5pt]
+  Returns the value the object had {\color{Marty}before} it was incremented
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operator overloading - increment}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \path (pic cs:pre increment begin,{(0,0)}) coordinate (a);
+    \path (pic cs:pre increment end,{(0,0)}) coordinate (b);
+    \fill[opacity=0.25,AtomicBikini] (a -| current page.north west) -- ++(0,.9ex) -- ++(\paperwidth,0)
+    -- (b -| current page.north east) -- ++(0,-.4ex) -- ++(-\paperwidth,0) -- cycle;
+    \coordinate (a edge) at (a -| current page.east);
+    \coordinate (b edge) at (b -| current page.east);
+    \node at ($(a edge) !.5! (b edge)$) [anchor=east,xshift=-1cm,scale=0.75] {Pre increment};
+  \end{tikzpicture}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Counter},basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont]
+class Counter
+{
+public:
+  Counter& operator++() (*\tikzsupermark{pre increment begin}*)
+  {
+    ++count;
+    return *this;
+  } (*\tikzsupermark{pre increment end}*)
+
+  Counter operator++(int)
+  {
+    auto before = *this;
+    ++count;
+    return before;
+  }
+
+private:
+  unsigned count;
+};
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operator overloading - increment}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \path (pic cs:post increment begin,{(0,0)}) coordinate (a);
+    \path (pic cs:post increment end,{(0,0)}) coordinate (b);
+    \fill[opacity=0.15,Marty] (a -| current page.north west) -- ++(0,1ex) -- ++(\paperwidth,0)
+    -- (b -| current page.north east) -- ++(0,-.4ex) -- ++(-\paperwidth,0) -- cycle;
+    \coordinate (a edge) at (a -| current page.east);
+    \coordinate (b edge) at (b -| current page.east);
+    \node at ($(a edge) !.5! (b edge)$) [anchor=east,xshift=-1cm,scale=0.75] {Post increment};
+  \end{tikzpicture}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Counter},basicstyle=\ttfamily\fontsize{9pt}{9pt}\selectfont]
+class Counter
+{
+public:
+  Counter& operator++()
+  {
+    ++count;
+    return *this;
+  }
+
+  Counter operator++(int) (*\tikzsupermark{post increment begin}*)
+  {
+    auto before = *this;
+    ++count;
+    return before;
+  } (*\tikzsupermark{post increment end}*)
+
+private:
+  unsigned count;
+};
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{And many more...}
+
+  All the other operators can be overloaded as well
+
+  \vspace{.25em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Reference {\color{Tropiteal}\&} and dereference {\color{Tropiteal}*}
+    \item Arithmetic assignment {\ttfamily\color{Tropiteal}+= -= *= /=}
+    \item Call operator {\color{Tropiteal}()}
+    \item Element operator {\color{Tropiteal}[]}
+    \item Cast operator
+  \end{itemize}
+
+  \vspace{.5em}
+  except for member access {\large\color{Tropiteal}.}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{FeebleWeek}const}-ness}
+
+  Member functions that leave the object unchanged should be marked const
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Coordinate}]
+class Coordinate
+{
+public:
+  double norm() const;
+};
+  \end{lstlisting}
+
+  \vspace{1em}
+  Constant instances of a class can only call methods that are marked const
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{FeebleWeek}static} methods in classes}
+
+  \begin{onlyenv}<1>
+    Just as with functions, a static member of a class transcends the individual class instances
+    
+    \vspace{1em}
+    Static methods can only use static variables and call other static methods
+    
+    \vspace{1em}
+    Access static methods as if it was in a namespace
+
+    \vspace{.5em}
+    \begin{lstlisting}[morekeywords={SomeClass},basicstyle=\ttfamily]
+SomeClass::staticMethod();
+    \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={InstanceCounter}]
+class InstanceCounter
+{
+public:
+  InstanceCounter() { ++count; }
+  ~InstanceCounter() { --count; }
+
+  static unsigned getCount()
+  {
+    return count;
+  }
+
+private:
+  static unsigned count;
+};
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<3-4>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={InstanceCounter}]
+unsigned InstanceCounter::count = 0;
+
+int main()
+{
+  InstanceCounter i1;
+  InstanceCounter::getCount(); (*\tikzmark{count 1}*)
+  {
+    InstanceCounter i1, i2, i3, i4;
+    InstanceCounter::getCount(); (*\tikzmark{count 2}*)
+  }
+  InstanceCounter::getCount(); (*\tikzmark{count 3}*)
+}
+  \end{lstlisting}
+
+  \only<4>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (a) at ([yshift=.3ex] count 1);
+    \draw[pointy arrow] (a) -- +(2cm,0)
+      coordinate (aend)
+      node[right, scale=0.75] {1};
+    \coordinate (b) at ([yshift=.3ex] count 2);
+    \draw[pointy arrow] (b) -- (b -| aend)
+      node[right, scale=0.75] {5};
+    \coordinate (c) at ([yshift=.3ex] count 3);
+    \draw[pointy arrow] (c) -- (c -| aend)
+      node[right, scale=0.75] {1};
+  \end{tikzpicture}
+  }
+
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{The rule of %
+  \tikz[baseline={(three.base)}]{
+    \node[inner sep=2pt] (three) {three};
+    \draw[line width=2pt,Marty] ([yshift=.1cm] three.south west) -- ([yshift=-.2cm] three.north east);
+  } five}
+
+  It is generally a good idea to explicitly define
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Destructor
+    \item Copy constructor
+    \item Move constructor {\footnotesize\color{Tropiteal}\{C++11\}}
+    \item Copy assignment operator
+    \item Move assignment operator {\footnotesize\color{Tropiteal}\{C++11\}}
+  \end{itemize}
+  
+\end{frame}
+
+\section{Programming Practices}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Good Programming Practices}
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item Be wary of memory leaks
+    \item Continue to use {\color{FeebleWeek}const} consistently
+    \item Assign values to built in types at construction
+    \item Respect encapsulation
+    \item Follow the rule of five
+  \end{itemize}
+  
+\end{frame}
+
+
+\section{Recap}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Recap Day 3}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item Use {\color{FeebleWeek}new} and {\color{Marty}delete} to manage memory dynamically
+    \item Classes can have member variables and member functions
+    \item Member functions are bound to the class instance
+    \item Classes have three levels of access levels
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Recap Day 3}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item Constructors manipulate how new objects are created
+    \item Destructors define what happens when they go out of scope
+    \item Operators can be overloaded to define how they work with your classes
+  \end{itemize}
+  
+\end{frame}
+
+\end{document}

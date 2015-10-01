@@ -1,0 +1,1608 @@
+\documentclass[14pt,a4paper,dvipsnames,usenames]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{amsmath,varwidth}
+\usepackage{tikz,tikz-uml,xparse}
+\usepackage{listings,algpseudocode}
+\usepackage[quiet]{mathspec}
+
+\setmainfont[
+  ItalicFont={Yanone Kaffeesatz Light},
+  Scale=1.3,
+  LetterSpace=2.0
+]{Yanone Kaffeesatz Bold}
+
+\setmonofont{Hack}
+
+\input{style.tex}
+\input{defs.tex}
+\input{funcs.tex}
+
+\usefonttheme{serif}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+%\setbeameroption{show notes}
+
+\title[C++ Day4]{Introduction to the C++\newline{}Programming Language\newline{}\newline{}\fontsize{16pt}{16pt}\selectfont{}Day 4}
+\author{\texorpdfstring{%
+    Jonas Rylund Glesaaen\newline\fontsize{12pt}{12pt}\selectfont\texttt{jonas@glesaaen.com}%
+  }{%
+    Jonas Rylund Glesaaen}}
+\date{October 1st 2015}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+  \frametitle{What will we learn?}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item \StrikeThrough{Basic C++ syntax}
+    \item \StrikeThrough{Control structures}
+    \item \StrikeThrough{Functions}
+    \item Structs and classes \hspace{.25cm}{\color{Marty}(Wednesday and today)}
+    \item Templates and STL \hspace{.5cm}{\color{Marty}(today and Friday)}
+    \item Exceptions \hspace{.5cm}{\color{Tropiteal}(Friday)}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Today's topics}
+
+  \tableofcontents
+  
+\end{frame}
+
+\section{Inheritance}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Subtypes and supertypes}
+
+  Inheritance lets you create new classes based on existing ones
+
+  \vspace{1em}
+  Subtypes/children are more specialised than their supertypes/parents
+
+  \vspace{1em}
+  Children inherit all the variables and methods of their parents
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Simple Example}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Animal,Bird,Fish}]
+class Animal (*\tikzmark{animal begin}*)
+{
+public:
+  void eat();
+}; (*\tikzmark{animal end}*)
+
+class Bird : public Animal (*\tikzmark{bird begin}*)
+{
+public:
+  void fly();
+}; (*\tikzmark{bird end}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (layer one) at ([xshift=1.5cm] current page.north);
+
+    \coordinate (animal top) at ([yshift=1.25ex] animal begin);
+    \coordinate (animal bottom) at ([yshift=-.5ex] animal end);
+
+    \coordinate (bird top) at ([yshift=1.25ex] bird begin);
+    \coordinate (bird bottom) at ([yshift=-.5ex] bird end);
+
+    \only<1>{
+      \draw[decorate,decoration={brace,amplitude=5pt},line width=1pt]
+        (layer one |- animal top) -- (layer one |- animal bottom)
+        node[midway,right=.5em,align=left,scale=0.75] {%
+          Every animal can eat
+        };
+    }
+    \only<2>{
+      \draw[decorate,decoration={brace,amplitude=5pt},line width=1pt]
+        (layer one |- bird top) -- (layer one |- bird bottom)
+        node[midway,right=.5em,align=left,scale=0.75] {%
+          Every bird is an animal\\[5pt]
+          \hspace{.1cm}\tikz[baseline=-.6ex] \draw[-{Stealth},line width=1pt] (0,0) -- (.5cm,0); Every bird can eat\\[10pt]
+          Every bird can fly {\fontsize{8pt}{8pt}\selectfont\{well...\}}
+        };
+    }
+    \only<3>{
+      \draw[decorate,decoration={brace,amplitude=5pt},line width=1pt]
+        (layer one |- animal top) -- (layer one |- bird bottom)
+        node[midway,right=.5em,align=left,scale=0.75] {%
+          Not every animal is a bird\\[5pt]
+          \hspace{.1cm}\tikz[baseline=-.6ex] \draw[-{Stealth},line width=1pt] (0,0) -- (.5cm,0); Not all animals can fly
+        };
+    }
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Simple Example}
+
+  \begin{onlyenv}<2>
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \path (pic cs:cow fly,{(0,0)}) coordinate (a);
+    \fill[opacity=.15,Marty] (a -| current page.north west) -- ++(0,1.1ex) -- ++(\paperwidth,0)
+    -- (a -| current page.north east) -- ++(0,-.4ex) -- ++(-\paperwidth,0) -- cycle;
+    \node at (a -| current page.east) [scale=0.75,anchor=east,xshift=-1cm,yshift=.1cm] {{\color{Marty}Error:} cows can't fly};
+  \end{tikzpicture}
+  \end{onlyenv}
+  
+  \begin{overlayarea}{\textwidth}{6cm}
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Animal,Bird,Fish}]
+#include"animals.hpp"
+
+int main()
+{
+  Animal cow;
+  cow.eat();
+
+  Bird penguin;
+  penguin.eat();
+  penguin.fly();
+}
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Animal,Bird,Fish}]
+#include"animals.hpp"
+
+int main()
+{
+  Animal cow;
+  cow.eat();
+  cow.fly(); (*\tikzsupermark{cow fly}*)
+
+  Bird penguin;
+  penguin.eat();
+  penguin.fly();
+}
+  \end{lstlisting}
+  \end{onlyenv}
+  \end{overlayarea}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Inheritance and access}
+
+  {\large\centering
+    My {\color{Marty}\Large\{}\tikzmark{begin} \hspace{2cm} \tikzmark{end}{\color{Marty}\Large\}} are not my friends\\[5pt]
+    \only<1>{\fontsize{8pt}{8pt}\selectfont (they might be bastards)}
+    \only<2>{\fontsize{8pt}{8pt}\selectfont (they are definitely up to no good)}
+    \only<3>{\fontsize{8pt}{8pt}\selectfont (they weren't chosen by me)}
+  \par}
+  
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (middle) at ($(begin) !.5! (end)$);
+    \only<1>{
+      \node[yshift=.5ex] at (middle) [font=\large] {children\strut{}};
+    }
+    \only<2>{
+      \node[yshift=.5ex] at (middle) [font=\large] {siblings\strut{}};
+    }
+    \only<3>{
+      \node[yshift=.5ex] at (middle) [font=\large] {parents\strut{}};
+    }
+
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Inheritance and access}
+
+  Inherited classes do not have access to the base\\class' private members
+
+  \vspace{1em}
+  Here is where the {\color{FeebleWeek}protected} access level enters
+
+  \vspace{1em}
+  {\color{FeebleWeek}protected} members are
+
+  \begin{itemize}
+    \setlength\itemsep{.3em}
+    \item {\color{Marty}private} to the outside
+    \item {\color{Tropiteal}public} for subclasses
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Inheritance and access}
+
+  There is also an access level at the inheritance point
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+class Bird : public(*\tikzmark{public}*) Animal {}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-3ex,-.5ex)}] public) .. controls +(0,-.75cm) and +(-.25cm,.25cm) .. +(1cm,-.5cm)
+      node[below right,anchor=north west,inner sep=4pt,xshift=-1ex] {This one};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Inheritance and access}
+
+  This is the access level the inherited members will have in the new subclass
+
+  \vspace{.5em}
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Animal,Bird}]
+class Animal
+{
+public:
+  void eat();
+};
+
+class Bird : public Animal {}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  \lstinline!eat()! is a public method in \,\lstinline[morekeywords={Bird}]!Bird!
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Animal,Bird}]
+class Animal
+{
+public:
+  void eat();
+};
+
+class Bird : private Animal {}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  \lstinline!eat()! is a private method in \,\lstinline[morekeywords={Bird}]!Bird!
+  \end{onlyenv}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Inheritance and access}
+
+  Think of {\color{FeebleWeek}public} inheritance as\\[5pt]
+  \hspace{1cm}{\color{Tropiteal}\{child\}} is a {\color{Tropiteal}\{parent\}}
+
+  \vspace{1cm}
+  Think of {\color{Marty}private} inheritance as\\[5pt]
+  \hspace{1cm}{\color{Tropiteal}\{child\}} is implemented in terms of {\color{Tropiteal}\{parent\}}
+
+  \vspace{1cm}
+  Don't think too hard about {\color{Marty}protected} inheritance
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Constructors}
+
+  \only<1>{
+  Constructors are not inherited {\footnotesize\{not even the copy constructor\}}
+
+  \vspace{1cm}
+  But a parent's constructor can (and will) be called
+  }
+
+  \begin{onlyenv}<2-3>
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+class Derived : public Base
+{
+public:
+  Derived() {} (*\tikzmark{default constructor}*)
+
+  Derived(int x)
+    : var {x} {} (*\tikzmark{derived int}*)
+
+  Derived(int x)
+    : Base {x} {} (*\tikzmark{base int}*)
+};
+  \end{lstlisting}
+
+  \only<3>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([yshift=.35ex] default constructor) -- +(2.5cm,0)
+      coordinate (default end)
+      node[right,align=left,scale=0.75] {%
+        Base default\\constructor called
+      };
+    \coordinate (derived int begin) at ([yshift=.35ex] derived int);
+    \draw[pointy arrow] (derived int begin) -- (derived int begin -| default end)
+      node[right,align=left,scale=0.75] {%
+        Base default\\constructor called
+      };
+    \coordinate (base int begin) at ([yshift=.35ex] base int);
+    \draw[pointy arrow] (base int begin) -- (base int begin -| default end)
+      node[right,align=left,scale=0.75] {%
+        Base constructor\\
+        accepting an int called
+      };
+  \end{tikzpicture}
+  }
+
+  \end{onlyenv}
+
+  \begin{onlyenv}<4->
+
+    The copy constructor can be defined as
+
+    \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+class Derived : public Base
+{
+public:
+  Derived() {}
+
+  Derived(const Derived & copy)
+    : Base {copy}(*\tikzmark{copy}*) {}
+};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-2ex,-.5ex)}] copy) .. controls +(0,-.5cm) and +(-.5cm,0) .. +(1cm,-1cm)
+      node[right,scale=0.75] {%
+        We will get back to why this works
+      };
+  \end{tikzpicture}
+
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Destructors}
+
+  The destructor is also not inherited
+
+  \vspace{1cm}
+  But it will also be called when the instance is deleted\\
+  {\footnotesize\{more on this later\}}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Inheritance vs composition}
+
+  Inheritance is {\Large\color{FeebleWeek}great},\\[5pt]
+but remember that all of it so far can also be accomplished with composition
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Inheritance vs composition}
+
+  \begin{lstlisting}[morekeywords={Animal,Bird},basicstyle=\fontsize{12pt}{12pt}\selectfont\ttfamily]
+class Bird
+{
+public:
+  void eat()
+  {
+    base.eat();
+  }
+
+private:
+  Animal base;
+};
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Inheritance vs composition}
+
+  Always consider your options
+
+  \vspace{1cm}
+  Composition is used to describe\\[5pt]
+  \hspace{1cm}{\color{Tropiteal}\{A\}} is implemented in terms of {\color{Tropiteal}\{B\}}\\[5pt]
+  \hspace{1cm}{\color{Tropiteal}\{A\}} has a {\color{Tropiteal}\{B\}}\\[5pt]
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Friendship under inheritance}
+
+  {\large \centering
+    Friends of my {\color{Marty}\Large\{}\tikzmark{begin} \hspace{2cm} \tikzmark{end}{\color{Marty}\Large\}} are not my
+    friends\\[5pt]
+    \only<1>{\fontsize{8pt}{8pt}\selectfont (they might be creeps)}
+    \only<2>{\fontsize{8pt}{8pt}\selectfont (they are all annoying)}
+    \only<3>{\fontsize{8pt}{8pt}\selectfont (they are probably criminals)}
+  \par}
+  
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (middle) at ($(begin) !.5! (end)$);
+    \only<1>{
+      \node[yshift=.5ex] at (middle) [font=\large] {parents\strut{}};
+    }
+    \only<2>{
+      \node[yshift=.5ex] at (middle) [font=\large] {children\strut{}};
+    }
+    \only<3>{
+      \node[yshift=.5ex] at (middle) [font=\large] {friends\strut{}};
+    }
+    
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Multiple inheritance}
+
+  It is also possible to inherit from multiple classes
+
+  \vspace{.3em}
+  \begin{center}
+  \fontspec{Yanone Kaffeesatz Regular}
+  \begin{tikzpicture}[
+    class/.style={
+      draw, rounded corners,
+      line width=.5pt,
+      minimum width=3cm,
+      text height=1.5ex,
+      fill=TealDrop!60!WhiteTrash
+    },
+    inherit/.style={
+      line width=1pt,
+      {Triangle[open]}-,
+      shorten <=3pt
+    }]
+    \matrix (scheme) [
+      matrix of nodes,
+      nodes in empty cells,
+      column sep=1.7cm,
+      row sep=1.5cm,
+      ]
+    {
+      & & \\
+      & & \\
+    };
+    \node[class] at (scheme-1-1) (bird) {Bird};
+    \node[class] at (scheme-1-3) (robot) {Robot};
+    \node[class] at (scheme-2-2) {RoboPenguin}
+      edge[inherit] (bird)
+      edge[inherit] (robot);
+    \end{tikzpicture}
+  \end{center}
+
+  \begin{overlayarea}{\textwidth}{2cm}
+
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+class RoboPenguin : public Bird, public Robot {};
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \only<2>{\fontspec{Yanone Kaffeesatz Regular}
+    {\color{Marty}Note,} the two base classes shouldn't declare the same members
+  }
+  \end{overlayarea}
+  
+  
+\end{frame}
+
+\section{Polymorphism}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile,plain]
+
+  {\Large polymorphism} \hspace{.2cm} {\fontspec{Yanone Kaffeesatz Light}-noun}\\[2pt]
+  {\fontspec{Doulos SIL}/ˌpɒlɪˈmɔːfɪz(ə)m/}
+
+  \vspace{.4cm}
+  {\fontsize{12pt}{12pt}\selectfont
+  From ancient Greek\\[1pt]
+  {\fontspec{Roboto}πολύς} {\fontspec{Yanone Kaffeesatz Light}(polús), meaning "many" or "much", and}\\
+  {\fontspec{Roboto}μορφή} {\fontspec{Yanone Kaffeesatz Light}(morphé), meaning "form" or "shape"}
+  }
+
+  \vspace{.8cm}
+  {\fontspec{Yanone Kaffeesatz Light}\footnotesize \raisebox{1ex}{a)}}
+  the condition of occurring in several different forms
+
+  \vspace{.6cm}
+  {\fontspec{Yanone Kaffeesatz Light}\footnotesize \raisebox{1ex}{b)}}
+  the ability to assume different forms or shapes
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{What is polymorphism?}
+
+  A base class can always be replaced with\\a child class instance
+
+  \vspace{.8em}
+  If given by-value:\\
+  \hspace{.2cm} the derived class will be cast to the base class
+
+  \vspace{.8em}
+  If given by-reference:\\
+  \hspace{.2cm} the derived class will {\color{FeebleWeek}keep its identity}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Polymorphism - example}
+
+  \begin{onlyenv}<1>
+  \begin{center}
+  \begin{tikzpicture}[
+    frame/.style={
+      draw,
+      fill=WhiteTrash
+    }]
+
+    \node[frame,scale=0.75] (base class) \bgroup%
+      \begin{minipage}{10cm}
+        \begin{lstlisting}[morekeywords={string}]
+class Logger
+{
+public:
+  virtual void log(std::string) = 0;
+};
+        \end{lstlisting}
+      \end{minipage}\egroup;
+
+    \node[fill=WhiteTrash] at (base class.north) [font=\ttfamily,scale=0.6] {Base class};
+
+  \end{tikzpicture}
+  \end{center}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \vspace*{-.5cm}
+  \begin{center}
+  \begin{tikzpicture}[
+    frame/.style={
+      draw,
+      fill=WhiteTrash
+    }]
+    \node[frame,scale=0.6] (console class) \bgroup%
+      \begin{minipage}{10.6cm}
+        \begin{lstlisting}[morekeywords={string,override}]
+class ConsoleLogger : public Logger
+{
+public:
+  virtual void log(std::string message) override
+  {
+    std::cout << message << std::endl;
+  }
+};
+        \end{lstlisting}
+      \end{minipage}\egroup;
+
+    \node[fill=WhiteTrash] at (console class.north) [font=\ttfamily,scale=0.6] {Derived \#1};
+
+    \node[frame,scale=0.6,below=.5cm of console class] (file class) \bgroup%
+      \begin{minipage}{10.6cm}
+        \begin{lstlisting}[morekeywords={string,override,ofstream}]
+class FileLogger : public Logger
+{
+private:
+  std::ofstream ofs;
+
+public:
+  FileLogger(std::string filename)
+    : ofs {filename} {}
+
+  virtual void log(std::string message) override
+  {
+    ofs << message << std::endl;
+  }
+};
+        \end{lstlisting}
+      \end{minipage}\egroup;
+
+    \node[fill=WhiteTrash] at (file class.north) [font=\ttfamily,scale=0.6] {Derived \#2};
+  \end{tikzpicture}
+  \end{center}
+  \end{onlyenv}
+
+  \begin{onlyenv}<3>
+  \begin{center}
+  \begin{tikzpicture}[
+    frame/.style={
+      draw,
+      fill=WhiteTrash
+    }]
+    \node[frame,scale=0.75] (in use) \bgroup%
+      \begin{minipage}{12cm}
+        \begin{lstlisting}[morekeywords={Logger,FileLogger,ConsoleLogger}]
+void complicatedOperation(/* args */, Logger & logger)
+{
+  // ...
+  logger.log("Stuff happens");
+}
+
+int main()
+{
+  ConsoleLogger console_log;
+  complicatedOperation(console_log);
+
+  FileLogger file_log {"program.log"};
+  complicatedOperation(file_log);
+}
+        \end{lstlisting}
+      \end{minipage}\egroup;
+
+    \node[fill=WhiteTrash] at (in use.north) [font=\ttfamily,scale=0.6] {Implementation};
+  \end{tikzpicture}
+  \end{center}
+  \end{onlyenv}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}virtual} keyword}
+
+  The {\color{FeebleWeek}virtual} keyword means that the function in question can be overridden
+
+  \vspace{1em}
+  If not present the base class' implementation will be called even when we have a by-reference instance
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}virtual} keyword}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \fill[opacity=0.25,FeebleWeek] ([yshift=1.2cm] current page.west) -- ++(0,.95ex) -- ++(\paperwidth,0) -- ++(0,-1ex) -- cycle;
+  \end{tikzpicture}
+
+  \begin{tikzpicture}
+  \node[anchor=north,inner sep=0pt] {%
+  \begin{minipage}{7cm}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={string},basicstyle=\fontsize{7pt}{7pt}\selectfont\ttfamily]
+class Base
+{
+public:
+  std::string name() const
+  {
+    return {"Base"};
+  }
+};
+  \end{lstlisting}
+\end{minipage}};
+\node[anchor=north,inner sep=0pt] at (5.5cm,0) {%
+  \begin{minipage}{7cm}
+  \begin{lstlisting}[morekeywords={string},basicstyle=\fontsize{7pt}{7pt}\selectfont\ttfamily]
+class Derived : public Base
+{
+public:
+  std::string name() const
+  {
+    return {"Derived"};
+  }
+};
+  \end{lstlisting}
+\end{minipage}};
+  \end{tikzpicture}
+
+  \begin{lstlisting}[morekeywords={string,Base,Derived},
+    escapeinside={(*}{*)},
+    basicstyle=\fontsize{8pt}{8pt}\selectfont\ttfamily]
+int main()
+{
+  Derived dclass;
+  Base & bref = dclass;
+
+  dclass.name(); (*\tikzmark{dclass call}*)
+
+  bref.name(); (*\tikzmark{bref call}*)
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (dclass begin) at ([yshift=.3ex] dclass call);
+    \draw[pointy arrow,line width=.6pt] (dclass begin) -- +(2cm,0)
+      coordinate (dclass end)
+      node[right,scale=0.75] {\lstinline!"Derived"!};
+    \coordinate (bref begin) at ([yshift=.3ex] bref call);
+    \draw[pointy arrow,line width=.6pt] (bref begin) -- (bref begin -| dclass end)
+      node[right,scale=0.75] {\lstinline!"Base"!};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}virtual} keyword}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \fill[opacity=0.25,FeebleWeek] ([yshift=1.2cm] current page.west) -- ++(0,.95ex) -- ++(\paperwidth,0) -- ++(0,-1ex) -- cycle;
+  \end{tikzpicture}
+
+  \begin{tikzpicture}
+  \node[anchor=north,inner sep=0pt] {%
+  \begin{minipage}{7cm}
+  \begin{lstlisting}[morekeywords={string},basicstyle=\fontsize{7pt}{7pt}\selectfont\ttfamily]
+class Base
+{
+public:
+  virtual std::string name() const
+  {
+    return {"Base"};
+  }
+};
+  \end{lstlisting}
+\end{minipage}};
+\node[anchor=north,inner sep=0pt] at (5.5cm,0) {%
+  \begin{minipage}{7cm}
+  \begin{lstlisting}[morekeywords={string},basicstyle=\fontsize{7pt}{7pt}\selectfont\ttfamily]
+class Derived : public Base
+{
+public:
+  virtual std::string name() const
+  {
+    return {"Derived"};
+  }
+};
+  \end{lstlisting}
+\end{minipage}};
+    \end{tikzpicture}
+
+  \begin{lstlisting}[morekeywords={string,Base,Derived},
+    escapeinside={(*}{*)},
+    basicstyle=\fontsize{8pt}{8pt}\selectfont\ttfamily]
+int main()
+{
+  Derived dclass;
+  Base & bref = dclass;
+
+  dclass.name(); (*\tikzmark{dclass call}*)
+
+  bref.name(); (*\tikzmark{bref call}*)
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (dclass begin) at ([yshift=.3ex] dclass call);
+    \draw[pointy arrow,line width=.6pt] (dclass begin) -- +(2cm,0)
+      coordinate (dclass end)
+      node[right,scale=0.75] {\lstinline!"Derived"!};
+    \coordinate (bref begin) at ([yshift=.3ex] bref call);
+    \draw[pointy arrow,line width=.6pt] (bref begin) -- (bref begin -| dclass end)
+      node[right,scale=0.75] {\lstinline!"Derived"!};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Overriding functions}
+
+  Using polymorphism and overriding functions is a great way of writing more generalised code
+  and decrease code duplication
+
+  \vspace{1cm}
+  Humans are awesome at abstraction, take advantage of that for your programming
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}override} keyword}
+
+  {\color{FeebleWeek}virtual}\\[2pt]
+  tell the base class that a derived class can override the function
+
+  \vspace*{-.5cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[{Stealth}-{Stealth},use as bounding box,line width=1.5pt] (0,0) -- (0,1.5cm);
+      \node at (.2cm,.75cm) [anchor=west,scale=0.75,Marty] {Symmetry};
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace*{-.5cm}
+  {\color{FeebleWeek}override}\\[2pt]
+  tell the derived class that the function overrides a function from the base class
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}override} keyword}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={string}]
+class Base
+{
+public:
+  virtual std::string name() const (*\tikzmark{base name}*)
+  {
+    return {"Base"};
+  }
+};
+
+class Derived : public Base
+{
+public:
+  virtual std::string name() (*\tikzmark{derived name}*)
+  {
+    return {"Derived"};
+  }
+};
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[-{Stealth[bend]},line width=.7pt,shorten >=.4cm]
+      ([yshift=.3ex] derived name) .. controls +(1cm,.5cm) and +(1cm,-.3cm) .. ([xshift=-5ex] base name)
+      node[midway,right,scale=0.75] {This will {\color{Marty}not} override};
+  \end{tikzpicture}
+  }
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}override} keyword}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={string,override}]
+class Base
+{
+public:
+  virtual std::string name() const
+  {
+    return {"Base"};
+  }
+};
+
+class Derived : public Base
+{
+public:
+  virtual std::string name()(*\tikzmark{override}*) override
+  {
+    return {"Derived"};
+  }
+};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[{Stealth}-,line width=0.75] ([shift={(-.5ex,-.5ex)}] override) -- +(.5cm,-.5cm)
+      node [below,xshift=1cm,scale=0.75,Marty] {Compile error};
+  \end{tikzpicture}
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}override} keyword}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={string,override}]
+class Base
+{
+public:
+  virtual std::string name() const
+  {
+    return {"Base"};
+  }
+};
+
+class Derived : public Base
+{
+public:
+  virtual std::string name()(*\tikzmark{override}*) const override
+  {
+    return {"Derived"};
+  }
+};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[{Stealth}-,line width=0.75] ([shift={(-.5ex,-.5ex)}] override) -- +(.5cm,-.5cm)
+      node [below,xshift=.35cm,scale=0.75,FeebleWeek] {OK};
+  \end{tikzpicture}
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}final} keyword}
+
+  The {\color{FeebleWeek}final} keyword is used to {\color{Marty}disable} inheritance
+
+  \vspace{.2cm}
+  It can be used on both classes and member functions
+
+  \vspace{.2cm}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={final}]
+class Base
+{
+  virtual void finalMethod() final;
+};
+
+class Derived final : public Base
+{
+  virtual void finalMethod(); (*\tikzmark{final method}*)
+};
+
+class Child : public Derived {}; (*\tikzmark{final class}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (bend) at ([xshift=2.5cm] current page.north);
+    \coordinate (method begin) at ([yshift=.3ex] final method);
+    \coordinate (class begin) at ([yshift=.3ex] final class);
+
+    \coordinate (method bend) at (method begin -| bend);
+    \coordinate (class bend) at (class begin -| bend);
+    \coordinate (bend mid) at ($(method bend) !.5! (class bend)$);
+
+    \draw[{Stealth}-,rounded corners,line width=.7] (class begin) -- (class bend) -- (bend mid) -- +(.5cm,0);
+    \draw[{Stealth}-,rounded corners,line width=.7] (method begin) -- (method bend) -- (bend mid) -- +(.5cm,0)
+      node[right,scale=0.75,Marty] {Compile error};
+    
+  \end{tikzpicture}
+  
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Pure virtual functions}
+
+  It is possible to create an {\color{Tropiteal}abstract} class, which has virtual functions with no implementation
+
+  
+  \begin{onlyenv}<2>
+  \vspace{.5cm}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+class Shape
+{
+public:
+  virtual double area() const = 0;
+};
+  \end{lstlisting}
+    
+  \vspace{.5cm}
+  {\fontspec{Yanone Kaffeesatz Regular}
+    Every shape has an area, but the area of a generic shape is undefinable
+  }
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Interfaces}
+
+  The sum of methods a class has is called its interface
+
+  \vspace{1cm}
+  It is common to define the topmost class of a hierarchy as a pure interface, or a pure abstract class
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Destructors again}
+
+  When making use of polymorphism it is important to mark all destructors as virtual
+  
+  \vspace{.5cm}
+  This way a derived class can be destructed from a base reference
+
+  \begin{overlayarea}{\textwidth}{3cm}
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont]
+class Base
+{
+public:
+  ~Base() {...}
+};
+
+class Derived : public Base {...};
+
+std::unique_ptr<Base> base_ptr = std::make_unique<Derived>();(*\tikzmark{non virtual}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-2cm,2ex)}] non virtual) -- +(0,1cm)
+      node[above,scale=0.75,align=center] {%
+        {\ttfamily\color{FeebleWeek} Derived}'s destructor\\
+        will {\color{Marty}not} be called
+      };
+  \end{tikzpicture}
+  \end{onlyenv}
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont]
+class Base
+{
+public:
+  virtual ~Base() {...}
+};
+
+class Derived : public Base {...};
+
+std::unique_ptr<Base> base_ptr = std::make_unique<Derived>();(*\tikzmark{non virtual}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-2cm,2ex)}] non virtual) -- +(0,1cm)
+      node[above,scale=0.75,align=center] {%
+        {\ttfamily\color{FeebleWeek} Derived}'s destructor\\
+        will {\color{FeebleWeek}now} be called
+      };
+  \end{tikzpicture}
+  \end{onlyenv}
+  \end{overlayarea}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Casting}
+
+  Casting from Derived to Base is called upcasting\\[5pt]
+  This is always allowed for public inheritance
+
+  \vspace{1cm}
+  Casting from Base to Derived is called downcasting\\[5pt]
+  Only allowed using an explicit cast operation
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Dynamic casting}
+
+  For downcasting we need a dynamic cast
+
+  \vspace{.5em}
+  \begin{lstlisting}[morekeywords={Base,Derived}]
+int main()
+{
+  Derived derived_object;
+  Base & bref = derived object;
+
+  Derived & dref = dynamic_cast<Derived&>(bref);
+}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  Dynamic cast checks at runtime whether the downcast is actually allowed
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Slicing}
+
+  Passing a derived class by value results in slicing
+
+  \vspace{1.5cm}
+  Upcasting happens automatically,\tikzmark{complain} and all the class specialisations are stripped away
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south] (a) at ([yshift=2ex] complain) [scale=0.4,Marty,align=center] {without the\\compiler complaining};
+    \draw[Marty] ([shift={(0,0)}] a.south west) .. controls +(.6cm,-.1cm) and +(0,.3cm) .. ([yshift=1ex] complain);
+    \draw[Marty] ([shift={(0,0)}] a.south east) .. controls +(-.6cm,-.1cm) and +(0,.3cm) .. ([yshift=1ex] complain);
+  \end{tikzpicture}
+
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{Marty}The deadly diamond of death}}
+
+  \begin{center}
+  \fontspec{Yanone Kaffeesatz Regular}
+  \begin{tikzpicture}[
+    class/.style={
+      draw, rounded corners,
+      line width=.5pt,
+      minimum width=2.5cm,
+      text height=1.5ex,
+      fill=Marty!60!WhiteTrash
+    },
+    inherit/.style={
+      line width=1pt,
+      {Triangle[open]}-,
+      shorten <=3pt
+    }]
+    \matrix (scheme) [
+      matrix of nodes,
+      nodes in empty cells,
+      column sep=2.5cm,
+      row sep=2cm,
+      ]
+    {
+      & & \\
+      & & \\
+      & & \\
+    };
+    \node[class] at (scheme-1-2) (file) {File};
+    \node[class] at (scheme-2-1) (ifile) {IFile}
+      edge[inherit] (file);
+    \node[class] at (scheme-2-3) (ofile) {OFile}
+      edge[inherit] (file);
+    \node at (scheme-2-2) {\includegraphics[width=2cm]{Figures/toxic.pdf}};
+    \node[class] at (scheme-3-2) {IOFile}
+      edge[inherit] (ifile)
+      edge[inherit] (ofile);
+    \end{tikzpicture}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\color{Marty}The deadly diamond of death}}
+
+  There are multiple solutions available
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Using {\color{FeebleWeek}virtual} inheritance\\
+      \lstinline[basicstyle=\ttfamily\footnotesize]!class IFile : public virtual File {};!
+    \item Have the base class be pure virtual
+    \item Rewrite your class structure
+  \end{itemize}
+
+\end{frame}
+
+\section{Templates}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Motivation}
+
+  Say that you have overloaded a function to work for several types
+
+  \vspace{.5em}
+  \begin{lstlisting}[morekeywords={Logger}]
+void valueLog(int val, Logger & logger)
+{
+  logger << "[value]: " << val << std::endl;
+}
+
+void valueLog(double val, Logger & logger)
+{
+  logger << "[value]: " << val << std::endl;
+}
+
+// ... 
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Motivation}
+
+  If the function bodies are identical
+  {\fontsize{8pt}{8pt}\selectfont \{or could be made identical\}}\\
+  this is {\color{Marty}code duplication}, and should be avoided
+
+  \vspace{1cm}
+  Can only be done with {\color{FeebleWeek}templates}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Function templates}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={ValueType,Logger}]
+template <typename(*\tikzmark{typename}*) ValueType>
+void valueLog(ValueType val, Logger & logger)
+{
+  logger << "[value]: " << val << std::endl;
+}
+  \end{lstlisting}
+
+  \vspace{1em}
+  Compiles for every type that can be streamed to a Logger
+  {\fontsize{8pt}{8pt}\selectfont\{which again could be a template function\}}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \only<1>{
+    \draw[pointy arrow] ([shift={(-3ex,1.5ex)}] typename) .. controls +(0,.5cm) and +(-.5cm,0) .. +(1cm,.5cm)
+      node[right,scale=0.75] {Can be replaced with \lstinline!class!};
+    }
+    \only<2>{
+    \draw[pointy arrow] ([shift={(3ex,1.5ex)}] typename) .. controls +(0,.5cm) and +(-.5cm,0) .. +(1cm,.5cm)
+      node[right,scale=0.75] {Name of the undefined type};
+    }
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Generic programming}
+
+  \only<1>{
+  Using templates is another great tool for abstraction
+
+  \vspace{1em}
+  You can make assumptions on your template types,
+  and the assumptions will be checked by the compiler for every instance
+  }
+
+  \begin{onlyenv}<2->
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Container}]
+template <typename Container>
+void print(const Container & container)
+{
+  std::cout << "{";
+  for (auto i = 0; i < container.size(); ++i)
+    std::cout << container[i] << ",";
+    
+  std::cout << "}";
+}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  Only compiles if
+
+  \begin{overlayarea}{\textwidth}{2cm}
+  \only<2>{
+  \begin{enumerate}\fontsize{12pt}{12pt}\selectfont\setcounter{enumi}{0}
+    \item \lstinline[morekeywords={Container}]!Container! type has a \lstinline!size()! member function
+  \end{enumerate}
+  }
+  \only<3>{
+  \begin{enumerate}\fontsize{12pt}{12pt}\selectfont\setcounter{enumi}{1}
+    \item Type of \lstinline!container.size()! is comparable to \lstinline!int!
+  \end{enumerate}
+  }
+  \only<4>{
+  \begin{enumerate}\fontsize{12pt}{12pt}\selectfont\setcounter{enumi}{2}
+    \item \lstinline[morekeywords={Container}]!Container! has overloaded the access operator {\color{sblue}\ttfamily []}
+  \end{enumerate}
+  }
+  \only<5>{
+  \begin{enumerate}\fontsize{12pt}{12pt}\selectfont\setcounter{enumi}{3}
+    \item The type returned by \lstinline!container[i]! can be streamed to \lstinline!std::cout!
+  \end{enumerate}
+  }
+  \only<6>{
+  \begin{enumerate}\fontsize{12pt}{12pt}\selectfont\setcounter{enumi}{4}
+    \item Both member functions \lstinline!size()! and \lstinline![i]! are const
+  \end{enumerate}
+  }
+  \end{overlayarea}
+  \end{onlyenv}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Return value templates}
+
+  Can make functions that only differ in return type
+  
+  \vspace{.3em}
+  \begin{lstlisting}[morekeywords={Type}]
+template <typename Type>
+Type null()
+{
+  return static_cast<Type>(0);
+}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  But you have to tell the compiler which function to call
+
+  \vspace{.3em}
+  \begin{lstlisting}
+auto zero = null<int>();
+auto uzero = null<unsigned>();
+auto first_char = null<char>();
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Template specialisations}
+
+  Changing the template function for a specific type is called template specialisation
+  
+  \vspace{.5em}
+  \begin{columns}
+  \column{.4\textwidth}
+  \begin{lstlisting}[morekeywords={string}]
+template <>
+char null()
+{
+  return 'a';
+}
+  \end{lstlisting}
+  \column{.4\textwidth}
+  \begin{lstlisting}[morekeywords={string}]
+template <>
+std::string null()
+{
+  return {""};
+}
+  \end{lstlisting}
+  \end{columns}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Disabling specialisations}
+
+  Similarly to how one can disable the constructors and assignment operators in class declaration,
+  one can disable templates for specific types
+
+  \vspace{.5em}
+  \begin{lstlisting}[morekeywords={ostream}]
+template <>
+void* null() = delete;
+
+template <>
+std::ostream null() = delete;
+  \end{lstlisting}
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Class templates}
+
+  We can also make template classes
+
+  \vspace{.5em}
+  \begin{lstlisting}[morekeywords={ValueType}]
+template <typename ValueType>
+class Rational
+{
+private:
+  ValueType num, den;
+};
+
+  \end{lstlisting}
+  
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={complex,Rational}]
+Rational<double> frac;
+Rational< std::complex<double> >(*\tikzmark{stream op}*) compl_frac;
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-1ex,-.5ex)}] stream op) -- +(0,-.4cm)
+      node[below,scale=.75,xshift=-2.5cm] {{\color{Marty}Note:} please don't accidentally write the stream operator};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Partial specialisation}
+
+  Class templates can also have {\color{FeebleWeek}partial} template specialisations
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+template <typename Type>
+class Foo {};
+
+template <typename Type>
+class Foo<Type*> {}; (*\tikzmark{pointer spec}*)
+  \end{lstlisting}
+
+  \vspace{.5em}
+  Can't have that for functions\\
+  {\fontspec{Yanone Kaffeesatz Regular}
+    (but you could always make function objects)
+  }
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(.5cm,.3ex)}] pointer spec) -- +(1.5cm,0)
+      node[right,scale=0.75] {Specialisation for pointer types};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Use case: type traits}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={Type}]
+template <typename Type>
+class type_trait
+{
+public:
+  using value_type = typename Type::value_type;(*\tikzmark{dependent name}*)
+};
+
+template <typename Type>
+class type_trait<Type*>
+{
+public:
+  using value_type = Type;
+};
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-3.5ex,-.75ex)}] dependent name) -- +(0,-.5cm)
+      node[below,scale=0.75] {A {\color{Marty}dependent} name};
+  \end{tikzpicture}
+  }
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Separating declaration and definition}
+  \fontspec{Yanone Kaffeesatz Regular}
+
+  Separating template functions and classes into separate header and source files
+  are unfortunately not that easy, and doing it the naive way will most likely result 
+  in linking errors
+
+  \vspace{1cm}
+  For a solution either have a look at the C++ Super FAQ {\footnotesize (link on the homepage)} or
+  write all template functions as inline functions {\footnotesize (which is what libraries do)}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Template Meta Programming}
+
+  It was discovered {\fontsize{8pt}{8pt}\selectfont\color{Marty}(by accident)} that the C++ template system and pattern lookup
+  is itself Turing complete
+
+  \vspace{1cm}
+  It is possible to program with the template system
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Compile time factorials}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont,morekeywords={constexpr}]
+template <unsigned N>
+struct Factorial
+{
+  static constexpr unsigned value {N*Factorial<N-1>::value};
+};
+
+template <>
+struct Factorial
+{
+  static constexpr unsigned value {0};
+};
+  \end{lstlisting}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont,morekeywords={Factorial}]
+int main()
+{
+  std::cout << (*\tikzmark{runtime constant begin}*)Factorial<10>::value(*\tikzmark{runtime constant end}*) << std::endl;
+}
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+      \draw[transform canvas={yshift=-.75ex},decorate,decoration={brace,amplitude=5pt,mirror},line width=1pt]
+        (runtime constant begin) -- (runtime constant end)
+        node [midway, below=.5ex, scale=0.75] {Runtime constant};
+  \end{tikzpicture}
+  }
+
+\end{frame}
+
+\section{Programming Practices}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile,plain]
+
+  \vspace{2.5cm}
+  \centering
+  {\LARGE Learn to {\color{Marty}love} the compiler}\\
+  \tikz[baseline={(heart.center)}] \node[rotate=90,Marty,scale=4] (heart) {<3};
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Warnings are also great}
+
+  \begin{lstlisting}[language=bash,alsoletter={+},deletekeywords={dirs},basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont]
+g++ -pedantic -Wall -Wextra -Wcast-align -Wcast-qual
+  -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2
+  -Winit-self -Wlogical-op -Wmissing-declarations
+  -Wmissing-include-dirs -Wnoexcept -Wold-style-cast
+  -Woverloaded-virtual -Wredundant-decls -Wshadow
+  -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel
+  -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror
+  -Wno-unused -o program code.cpp
+  \end{lstlisting}
+
+  \vspace{.5em}
+  {\fontspec{Yanone Kaffeesatz Regular}
+    Everything that helps you avoid runtime debugging is invaluable
+  }
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Good Programming Practices}
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item Always make {\color{FeebleWeek}virtual} destructors for classes meant for inheritance
+    \item Use templates to avoid code duplication
+    \item Abstractions is a tool for the educated mind
+  \end{itemize}
+
+  \begin{center}
+  \begin{tikzpicture}
+    \node [use as bounding box] (quote) {%
+      \begin{minipage}{0.85\textwidth} \centering
+        We can solve any problem by introducing an extra layer of indirection
+      \end{minipage}
+    };
+    \node[yshift=.2cm] at (quote.north) [font=\fontspec{Yanone Kaffeesatz Regular},Tropiteal] {%
+      Fundamental theorem of software engineering};
+  \end{tikzpicture}
+  \end{center}
+  
+\end{frame}
+
+\section{Recap}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Recap Day 4}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item You can create new classes based on existing ones through inheritance
+    \item Encapsulation is very strict, friendship is not transitive
+    \item Public inheritance is like an "is-a" relationship
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Recap Day 4}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item Polymorphism is when you let derived classes act as its base class
+    \item Templates can be used to write type independent, generic programs
+    \item Template metaprogramming is awesome
+  \end{itemize}
+  
+\end{frame}
+
+\end{document}
