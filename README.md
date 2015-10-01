@@ -8,7 +8,7 @@ This git contains the course content for the C++ lecture I gave in 2015
    - [x] Lecture 28.09
    - [x] Lecture 29.09
    - [x] Lecture 30.09
-   - [ ] Lecture 01.10
+   - [x] Lecture 01.10
    - [ ] Lecture 02.10
 
  - [x] Exercies
