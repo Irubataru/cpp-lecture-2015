@@ -11,12 +11,12 @@ This git contains the course content for the C++ lecture I gave in 2015
    - [ ] Lecture 01.10
    - [ ] Lecture 02.10
 
- - [ ] Exercies
+ - [x] Exercies
    - [x] Exercises 28.09
    - [x] Exercises 29.09
    - [x] Exercises 30.09
    - [x] Exercises 01.10
-   - [ ] Exercises 02.10
+   - [x] Exercises 02.10
 
  - [ ] Sample Solutions
    - [x] Sample Solution 28.09
