@@ -1,0 +1,1649 @@
+\documentclass[14pt,a4paper,dvipsnames,usenames]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{amsmath,varwidth}
+\usepackage{tikz,tikz-uml,xparse}
+\usepackage{listings,algpseudocode}
+\usepackage[quiet]{mathspec}
+
+\setmainfont[
+  ItalicFont={Yanone Kaffeesatz Light},
+  Scale=1.3,
+  LetterSpace=2.0
+]{Yanone Kaffeesatz Bold}
+
+\setmonofont{Hack}
+
+\input{style.tex}
+\input{defs.tex}
+\input{funcs.tex}
+
+\usefonttheme{serif}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+%\setbeameroption{show notes}
+
+\title[C++ Day1]{Introduction to the C++\newline{}Programming Language\newline{}\newline{}\fontsize{16pt}{16pt}\selectfont{}Day 1}
+\author{\texorpdfstring{%
+    Jonas Rylund Glesaaen\newline\fontsize{12pt}{12pt}\selectfont\texttt{jonas@glesaaen.com}%
+  }{%
+    Jonas Rylund Glesaaen}}
+\date{September 28th 2015}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\section{Introduction}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Who am I?}
+
+  \begin{itemize}
+    \setlength\itemsep{1em}
+    \item Jonas Rylund \tikzmark{name begin}Glesaaen\tikzmark{name end}
+    \item "A lattice guy"
+    \item A mostly self-taught obsessive perfectionist
+    \item Someone who believes IT should be taught by IT people
+      {\fontsize{8pt}{8pt}\selectfont{}\{so you should all take a different course\}}
+  \end{itemize}
+
+  \uncover<2>{
+  \begin{tikzpicture}[overlay,remember picture]
+    \underlinemark{name begin}{name end}
+    \draw[<-,>=stealth] ($(name end) + (.2,-.1)$) .. controls +(1,0) and +(0,1) .. +(3,1)
+      node[below, font=\footnotesize, align=center] {weird\\Norwegian\\name};
+  \end{tikzpicture}}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Course material}
+  
+  \hspace*{-.5cm}
+  \begin{tikzpicture}
+    \node (github) {\includegraphics[width=2cm]{Figures/Octocat.png}};
+    \node [right=0pt of github] [font=\ttfamily] {Irubataru/cpp-lecture-2015};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{What will we learn?}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Basic C++ syntax \uncover<2->{\hspace{.5cm}{\only<2>{\color{Tropiteal}}\only<3>{\color{Marty}}(today)}}
+    \item Control structures \uncover<2->{\hspace{.5cm}{\only<2>{\color{Tropiteal}}\only<3>{\color{Marty}}(today)}}
+    \item Functions \uncover<2->{\hspace{.5cm}{\color{Tropiteal}(Tuesday)}}
+    \item Structs and classes \uncover<2->{\hspace{.25cm}{\color{Tropiteal}(Wednesday and Thursday)}}
+    \item Templates and STL \uncover<2->{\hspace{.5cm}{\color{Tropiteal}(Thursday and Friday)}}
+    \item Exceptions \uncover<2->{\hspace{.5cm}{\color{Tropiteal}(Friday)}}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[plain]
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \only<1>{
+    \fill[FeebleWeek] (current page.north east) rectangle (current page.south west);
+    \node at ([yshift=-.25em] current page.center) [font=\Large, WhiteTrash] (warn1) {%
+      Look at the person sitting next to you
+    };
+    }
+    \only<2>{
+    \fill[Marty] (current page.north east) rectangle (current page.south west);
+    \node at ([yshift=-.25em] current page.center) [font=\LARGE, WhiteTrash] (warn2) {%
+      One of you won't make it
+    };
+    }
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Today's topics}
+
+  \tableofcontents
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{What is C?}
+
+  \begin{minipage}{0.85\textwidth} \large
+    A relic from the 70s, 80s and 90s that has had a huge influence on most\\modern programming languages.
+  \end{minipage}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{What is C?}
+
+  Notable features
+
+  \vspace{.5em}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item It is a procedural language
+    \item It is statically typed
+    \item It has low-level access to memory
+    \item Readable syntax {\fontsize{8pt}{8pt}\selectfont{}(in my opinion)}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{What is C++?}
+
+  \begin{tikzpicture}
+    \node (quote) [align=left,font=\Large] {%
+      Anything you can do, I can do better.\\
+      I can do anything better than you.
+    };
+    \node [right=of quote.south, shift={(.5cm,-.2cm)}, color=TealDrop] {\emph{Annie Get Your Gun}};
+  \end{tikzpicture}
+
+  \vspace{1em}
+
+  \uncover<2>{
+    C++ is a language built on top of the C programming language
+  }
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{What is C++?}
+
+  Additional features
+
+  \vspace{.5em}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Classes and inheritance
+    \item Templates
+    \item Exceptions
+    \item A huge standard library
+    \item ... and it is in active development
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Versions of C++}
+
+  C++ is constantly evolving, hence there are many standards
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item C++98
+    \item { \only<2>{\color{Marty}} C++03}\tikzmark{cpp03}
+    \item { \only<3>{\color{Tropiteal}}C++11}\tikzmark{cpp11}
+    \item { \only<3>{\color{Tropiteal}}C++14}\tikzmark{cpp14}
+    \item C++17
+  \end{itemize}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \only<2>{
+      \draw[line width=1pt,<-,>=stealth] ([shift={(.2em,.4ex)}] cpp03) -- +(1.5cm,0)
+        node[right,scale=0.8] {Current standard of many compilers};
+    }
+    \only<3>{
+    \draw[transform canvas={xshift=.75em},decorate,decoration={brace,amplitude=5pt},line width=2pt]
+      ([yshift=1.25ex] cpp11) -- ([yshift=-.25ex] cpp14)
+      coordinate [midway] (brace mid);
+    \node[right=of brace mid,scale=.8] {We will use these};
+    }
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The slides}
+
+  \begin{center}
+  \begin{columns}
+    \column{.45\textwidth}
+    Things that are bad practice will be marked
+    \vspace{.2cm}
+    \begin{center}
+    \begin{tikzpicture}
+      \node[Marty,scale=1.2] {Bad Practice};
+    \end{tikzpicture}
+    \end{center}
+    \vspace{1cm}
+    \column{.45\textwidth}
+    Things new to C++11 or C++14 will me marked
+    \begin{center}
+    \begin{tikzpicture}
+      \node[Tropiteal,scale=1.2] {\{C++11\}};
+    \end{tikzpicture}
+    \end{center} \vspace*{-1.5cm}
+    \begin{center}
+    \begin{tikzpicture}
+      \node[Tropiteal,scale=1.2] {\{C++14\}};
+    \end{tikzpicture}
+    \end{center}
+  \end{columns}
+  \end{center}
+  
+\end{frame}
+
+\section{Syntax and structure}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Hello World in C++}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+#include<iostream> (*\tikzmark{include}*)
+
+int main() (*\tikzmark{main-func}*)
+{
+  std::cout(*\tikzmark{cout}*) << "Hello World"(*\tikzmark{string}*) << std::endl;(*\tikzmark{endl}*)
+}
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture, every node/.style={scale=0.8}, every path/.style={line width=1pt}]
+    \draw[<-,>=stealth] ([shift={(-2,.8em)}] include) .. controls +(0,.75cm) and +(-.75,0) .. +(2,1)
+      node [right] {Include external libraries};
+    \draw[<-,>=stealth] ([yshift=.2em] main-func) -- +(1,0) node [right] {The main function};
+    \draw[<-,>=stealth] ([shift={(-1cm,-.2cm)}] cout) -- +(0,-1) node [below, xshift=2cm] {Built in terminal stream object};
+    \draw[<-,>=stealth] ([shift={(-1cm,-.2cm)}] string) .. controls +(0,-1) and +(-.75,0) .. +(1,-.5)
+      node [right] {A string literal};
+  \end{tikzpicture}
+  }
+ 
+\end{frame}
+
+\begin{frame}
+  \frametitle{A program in C++}
+
+  In essence all C++ programs consist of two things
+
+  \vspace{1em}
+
+  \begin{enumerate}
+    \setlength\itemsep{.5em}
+    \item Sentences
+    \item Blocks
+  \end{enumerate}
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{A program in C++}
+
+  \Highlight{sentence begin}{sentence begin}
+
+  \begin{enumerate}
+    \item Sentences
+  \end{enumerate}
+
+  \vspace{1em}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+#include<iostream>
+
+int main()
+{
+  (*\tikzsupermark{sentence begin}*)std::cout << "Hello World" << std::endl;
+}
+  \end{lstlisting}
+
+  \vspace{1em}
+
+  \begin{minipage}[b][2ex]{\textwidth}
+    A complete instruction ending with a \hskip5pt {\large\color{Tropiteal};}
+  \end{minipage}
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{A program in C++}
+
+  \Highlight{block begin}{block end}
+
+  \begin{enumerate}
+    \setcounter{enumi}{1}
+    \item Blocks
+  \end{enumerate}
+
+  \vspace{1em}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+#include<iostream>
+
+int main()
+(*\tikzsupermark{block begin}*){
+  std::cout << "Hello World" << std::endl;
+(*\tikzsupermark{block end}*)}
+  \end{lstlisting}
+
+  \vspace{1em}
+
+  \begin{minipage}[b][2ex]{\textwidth}
+    A group of instructions inside of a pair of \hskip5pt {\large\color{Tropiteal}\{\}}
+  \end{minipage}
+
+\end{frame}
+
+\section{Types and variables}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{What is a variable?}
+
+  A variable is simply a named location in memory
+
+  \bigskip
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+int main()
+{
+  int n = 5;
+  std::cout << &n << std::endl; //(*\tikzmark{membegin}*)0x7fff27ea5464(*\tikzmark{memend}*)
+}
+  \end{lstlisting}
+
+  \begin{tikzpicture}[overlay,remember picture]
+    \underlinemark{membegin}{memend}
+    \coordinate (memcenter) at ($(membegin) !.5! (memend)$);
+    \draw[<-,>=stealth] ([yshift=-.25cm] memcenter) -- +(0,-1)
+      node[below,font=\footnotesize,align=center] {name of location\\in memory};
+  \end{tikzpicture}
+ 
+\end{frame}
+
+\begin{frame}
+  \frametitle{What is a variable?}
+
+  Its data type tells the compiler two important things
+
+  \vspace{1em}
+
+  \begin{enumerate}
+    \setlength\itemsep{1em}
+    \item How much memory the variable needs
+    \item The allowed operations on the variable
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variable initialisation}
+
+  \begin{onlyenv}<1-5>
+  \begin{lstlisting}[escapeinside={(*}{*)}, basicstyle=\ttfamily\large]
+(*\tikzmark{typebegin}*)double(*\tikzmark{typeend}*) (*\tikzmark{namebegin}*)rate_of_decay(*\tikzmark{nameend}*) = (*\tikzmark{litbegin}*)0.75(*\tikzmark{litend}*);
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<6>
+  \begin{lstlisting}[escapeinside={(*}{*)}, basicstyle=\ttfamily\large]
+double rate_of_decay (0.75);
+  \end{lstlisting}
+  \end{onlyenv}
+ 
+  \begin{onlyenv}<7>
+  \begin{lstlisting}[escapeinside={(*}{*)}, basicstyle=\ttfamily\large]
+double rate_of_decay {0.75};
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \begin{onlyenv}<8>
+  \begin{lstlisting}[escapeinside={(*}{*)}, basicstyle=\ttfamily\large]
+double rate_of_decay;
+  \end{lstlisting}
+  \end{onlyenv}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \only<2>{
+      \underlinemark[line width=1.5pt, Marty]{typebegin}{typeend};
+      \coordinate (typecenter) at ($(typebegin) !.5! (typeend)$);
+      \draw[<-,>=stealth,line width=1pt] ([yshift=-.25cm] typecenter) .. controls +(0,-.75) and +(-.75,0) ..  +(1,-1)
+        node[right, anchor=north west, yshift=.8em, scale=0.9] {%
+          \begin{minipage}{9cm}
+            Data type of the variable
+
+            \medskip
+            Tells the compiler:
+
+            \begin{itemize}
+              \item \lstinline!rate_of_decay! \hskip3pt is a \hskip3pt \lstinline!double!
+              \item It needs 8 bytes of memory {\fontsize{8pt}{8pt}\selectfont{}\{usually\}}
+            \end{itemize}
+          \end{minipage}
+        };
+    }
+    \only<3>{
+      \underlinemark[transform canvas={yshift=-.1cm}, line width=1.5pt, Marty]{namebegin}{nameend};
+      \coordinate (namecenter) at ($(namebegin) !.5! (nameend)$);
+      \draw[<-,>=stealth,line width=1pt] ([yshift=.8cm] namecenter) -- +(0,.5)
+        node[above, anchor=south, scale=0.9] {%
+          \begin{minipage}{8cm}
+            Name of the variable
+
+            \smallskip
+            Your hook to the newly allocated memory
+          \end{minipage}
+        };
+    }
+    \only<4>{
+      \underlinemark[line width=1.5pt, Marty]{litbegin}{litend};
+      \coordinate (litcenter) at ($(litbegin) !.5! (litend)$);
+      \draw[<-,>=stealth,line width=1pt] ([yshift=.-.25cm] litcenter) ..controls +(0,-.75) and +(.75,0) .. +(-1,-1)
+        node[left, anchor=north east, yshift=.8em, scale=0.9] {%
+          \begin{minipage}{6cm}
+            \flushright
+            A \hspace{.25em} \lstinline!double! \hspace{.25em} literal which will in this case be placed in the allocated memory
+            slot
+          \end{minipage}
+        };
+    }
+  \end{tikzpicture}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture, every node/.style={scale=1.25}]
+    \only<5>{
+      \node at ([yshift=1.2cm] current page.center) {Assignment Style};
+    }
+    \only<6>{
+      \node at ([yshift=1.2cm] current page.center) {C++03 Constructor Style};
+    }
+    \only<7>{
+      \node at ([yshift=1.2cm] current page.center) {C++11 Constructor Style};
+    }
+    \only<8>{
+      \node at ([yshift=1.2cm] current page.center) {Undefined Declaration Style};
+    }
+  \end{tikzpicture}
+
+  \only<8>{
+    \nointerlineskip
+    \begin{tikzpicture}[overlay,remember picture]
+      \node[anchor=south east] at ( current page.south east) [color=Marty, align=center]
+      {Bad Practice\\[-.2em]{\fontsize{8pt}{8pt}\selectfont\{for built in types\}}};
+    \end{tikzpicture}
+  }
+
+  \only<7>{
+    \nointerlineskip
+    \begin{tikzpicture}[overlay,remember picture]
+      \node[anchor=south east] at ( current page.south east) [color=Tropiteal, align=center]
+      {\{C++11\}};
+    \end{tikzpicture}
+  }
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Naming variables}
+
+  \begin{center}
+    \verb/([_a-zA-Z])[_a-zA-Z0-9]*/
+  \end{center}
+
+  \only<2>{
+
+    \vspace{1em}
+    Exceptions
+
+    \vspace{.5em}
+    \begin{itemize}
+      \setlength\itemsep{.5em}
+      \item Keywords defined by the language
+      \item Names starting with \_ or \_\_ are reserved
+    \end{itemize}
+
+    \vspace{.5em}
+    Keywords: \lstinline!int!, \lstinline!float!, \lstinline!while!, \lstinline!const!, \lstinline!false!, ...
+  }
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Naming variables}
+
+  One should find a system and stick to it
+
+  \vspace{1em}
+
+  \begin{overlayarea}{\textwidth}{4cm}
+  \begin{onlyenv}<1>
+  E.g. mixed style
+
+  \vspace{.5em}
+  {\renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{ll}
+    Variables: & \lstinline!snake_case! \\
+    Functions: & \lstinline!mixedCase! \\
+    Classes: & \lstinline!CamelCase!
+    \end{tabular}
+  }
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  E.g. Stroustrup style
+
+  \vspace{.5em}
+  {\renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{ll}
+    Variables: & \lstinline!snake_case! \\
+    Functions: & \lstinline!Mixed_case! \\
+    Classes: & \lstinline!Mixed_case!
+    \end{tabular}
+  }
+  \end{onlyenv}
+  \end{overlayarea}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Built in data types}
+
+  Basically four built in data types in C++
+
+  \vspace{1em}
+  {\renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|l|l|l|} \hline
+      Boolean: & \lstinline!bool! & \lstinline!true!, \lstinline!false!\\
+      Character: & \lstinline!char! & \lstinline!'c'!, \lstinline!'#'!, \lstinline!'7'!, ... \\
+      Integer: & \lstinline!int! & \lstinline!0!, \lstinline!12!, \lstinline!-42!, ... \\
+      Floating point: \hspace{.2em} & \lstinline!float! \hspace{.2em} & \lstinline!0.0!, \lstinline!1.33!, \lstinline!-4.11!, ... \\ \hline
+    \end{tabular}
+  }
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Type qualifiers}
+
+  \large Type qualifiers manipulate the built in types
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Type qualifiers}
+
+  Manipulate memory size
+  \begin{center}
+    \begin{tabular}{cc}
+      \lstinline!short! & \lstinline!long!
+    \end{tabular}
+  \end{center}
+
+  \vspace{1em}
+
+  Manipulate value range
+  \begin{center}
+    \begin{tabular}{cc}
+      \lstinline!signed! & \lstinline!unsigned!
+    \end{tabular}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Type qualifiers}
+
+  \footnotesize
+  \vspace*{-1em}
+  \begin{center}
+    {\renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|L{5cm}|L{3cm}|}\hline
+      {\color{Tropiteal}Type} & {\color{Tropiteal}Size$^*$ \fontsize{8pt}{8pt}\selectfont (minimum)} \\ \hline
+      \lstinline!short int! & 2 byte \\
+      \lstinline!int! & 2 byte \\
+      \lstinline!long int! & 4 byte \\
+      \lstinline!long long int! & 8 byte \\ \hline
+      \lstinline!float! & 4 byte \\
+      \lstinline!double! & 8 byte \\
+      \lstinline!long double! & 10 byte \\ \hline
+    \end{tabular}
+    }
+  \end{center}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south east] at (current page.south east) [scale=0.6, Tropiteal] {$^*$ depending on compiler and architecture};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Type qualifiers}
+
+  \vspace*{-.5em}
+  \footnotesize
+  \begin{center}
+    {\renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|l|L{7.5cm}|}\hline
+      {\color{Tropiteal}Type} & {\color{Tropiteal}Value range} \\ \hline
+      \lstinline!int! & {\ttfamily -32,768 to 32,767} \\
+      \lstinline!long int! & {\ttfamily -2,147,483,648 to 2,147,483,647} \\
+      \lstinline!unsigned int! & {\ttfamily 0 to 65,535}  \\ \hline
+      \lstinline!float! & {\ttfamily ± 1.175,494,3 10\textsuperscript{-38} to\newline
+        ± 3.402,823,4 10\textsuperscript{38} }\\
+      \lstinline!double! & {\ttfamily ± 2.225,073,858,507,201,4 10\textsuperscript{-308} to\newline
+        ± 1.797,693,134,862,315,7 10\textsuperscript{308} }\\ \hline
+    \end{tabular}
+    }
+  \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Literals}
+
+  Explicit values whose type are syntax dependent
+
+  \vspace{.5em}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Integers are just numbers: \hspace{.25em} \lstinline!5!
+    \item Floats have a decimal point: \hspace{.25em} \lstinline!4.5!
+    \item Characters are surrounded by ' ': \hspace{.25em} \lstinline!'c'!
+    \item Booleans are either \lstinline!true! \hspace{.1em} or \hspace{.1em} \lstinline!false!
+    \item C strings are surrounded by " ": \hspace{.25em} \lstinline!"Hello"!
+    \item Function literals: \lstinline![](int){/*...*/};!\tikzmark{function lit}
+  \end{itemize}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=west] at ([yshift=.4ex] function lit) [scale=0.8,Tropiteal] {\{C++11\}};
+  \end{tikzpicture}
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Literals}
+
+  One can add qualifiers to literals as well
+
+  \footnotesize
+  \begin{center}
+    {\renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|L{2cm}|L{4cm}|}\hline
+      {\color{Tropiteal}Literal\strut{}} & {\color{Tropiteal}Type} \\ \hline
+      \lstinline!42u! & \lstinline!unsigned int! \\
+      \lstinline!167l! & \lstinline!long! \\
+      \lstinline!5.62! & \lstinline!double! \\
+      \lstinline!1.0e-2! & \lstinline!double! \\
+      \lstinline!4.12f! & \lstinline!float! \\ \hline
+    \end{tabular}
+    }
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Operators}
+
+  Operators in programming are much the same as operators in mathematics %Style
+
+  \vspace{.5em}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Arithmetic operators: \hspace{.25em} {\ttfamily\bfseries\color{Tropiteal} + - * / \%}
+    \item Logic operators: \hspace{.25em} {\ttfamily\bfseries\color{Tropiteal} and \&\& or || !}
+    \item Comparison operators: \hspace{.25em} {\ttfamily\bfseries\color{Tropiteal} == < != > <= >=}
+    \item Combined operators:  \hspace{.25em} {\ttfamily\bfseries\color{Tropiteal} += -= *= /=}
+    \item Others: \hspace{.25em} {\ttfamily\bfseries\color{Tropiteal} << >> = ++ -- ? \& :: ->}
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operators}
+
+  Operators have different precedence levels
+
+  \vspace{1em}
+  \begin{itemize}
+    \setlength\itemsep{1em}
+    \item {\ttfamily\bfseries 5+12*7/4-2} \hspace{.25em}  
+      \only<2->{\tikz[baseline=-4pt] \draw[<-,>=stealth,line width=1pt] (0,0) -- (1,0); \hspace{.25em} {\color{Tropiteal} 24}}
+    \item {\ttfamily\bfseries 4>3 and 7==8 or 16<=72} \hspace{.25em}
+      \only<3->{\tikz[baseline=-4pt] \draw[<-,>=stealth,line width=1pt] (0,0) -- (1,0); \hspace{.25em} {\color{Tropiteal} true}}
+  \end{itemize}
+
+  \vspace{1em}
+  \uncover<3->{
+    Whitespace does nothing in C++
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operators}
+
+  Expressions can be grouped with \, {\color{Tropiteal}\large (\;)}
+
+  \vspace{1em}
+  \begin{itemize}
+    \setlength\itemsep{1em}
+    \item {\ttfamily\bfseries {\color{Tropiteal}(5+12)}*7/4-2}
+      \only<2->{\tikz[baseline=-4pt] \draw[<-,>=stealth,line width=1pt] (0,0) -- (1,0); \hspace{.25em} {\color{Tropiteal} 27}}
+    \item {\ttfamily\bfseries {\color{Tropiteal}(5+12)}*7/{\color{Marty}(4-2)}}
+      \only<3->{\tikz[baseline=-4pt] \draw[<-,>=stealth,line width=1pt] (0,0) -- (1,0); \hspace{.25em} {\color{Tropiteal} 59}}
+  \end{itemize}
+
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Type casting}
+
+  C++ is {\color{FeebleWeek}statically} typed, but not {\color{Marty}strongly} typed
+
+  \vspace{1em}
+
+  One can change between the types using casting
+
+  \vspace{1em}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+int n = 5;
+double cn = (double)n;(*\tikzmark{c cast}*)
+double cppn = static_cast<double>(n);(*\tikzmark{cpp cast}*)
+  \end{lstlisting}
+
+  \vspace{1em}
+
+  But you can never change the type of the variable \lstinline!n!
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture,every path/.style={line width=1pt}]
+    \coordinate (c text begin) at ($(c cast) + (.5em,.4ex)$);
+    \coordinate (c text end) at ($(c text begin) + (4cm,0)$);
+    \draw[<-,>=stealth] (c text begin) -- (c text end) node[right,scale=0.6] {C style cast};
+
+    \coordinate (cpp text begin) at ($(cpp cast) + (.5em,.4ex)$);
+    \coordinate (cpp text end) at (cpp text begin -| c text end);
+    \draw[<-,>=stealth] (cpp text begin) -- (cpp text end) node[right,scale=0.6] {C++ style cast};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variable qualifiers: {\color{FeebleWeek}const} }
+  
+  Constants are declared with \lstinline!const!
+
+  \vspace{1em}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\normalsize]
+const int size_of_arrays = 100;
+
+/* ... */
+
+size_of_arrays *= 2;(*\tikzmark{error}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture,every path/.style={line width=1pt}]
+    \coordinate (error begin) at ($(error) + (.5em,.4ex)$);
+    \coordinate (error end) at ($(error begin) + (2cm,0)$);
+    \draw[<-,>=stealth] (error begin) -- (error end) node[right,scale=0.8,Marty] {Compile error};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Variable qualifiers: {\color{FeebleWeek}const} }
+
+  \begin{center}
+    \begin{tikzpicture}
+      \node (mutable) [font=\ttfamily\bfseries,FeebleWeek,scale=1.5] {mutable};
+      \node[right=2.5cm of mutable] (const) [font=\ttfamily\bfseries,FeebleWeek,scale=1.5] {const};
+
+      \draw[line width=4pt,-{Latex[length=.5cm]},Marty] ([shift={(.70,.175)}] mutable.east) -- +(1.4cm,0);
+      \draw[line width=4pt,{Latex[length=.5cm]}-,Marty] ([shift={(.40,-.175)}] mutable.east) -- +(1.4cm,0);
+    \end{tikzpicture}
+  \end{center}
+
+  \only<2>{
+    \vspace{1em}
+    In {\color{Tropiteal}C++} variables are mutable by default
+
+    \vspace{1em}
+    Different from languages like {\color{Marty}rust}
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Pointers}
+
+  \only<1>{
+  Variables are still just named locations in memory
+  \\[.5em]
+  We can work with these locations using pointers
+  }
+
+  \begin{onlyenv}<2>
+  \vspace*{-2em}
+  \begin{center}
+    \begin{tikzpicture}[remember picture]
+      \matrix[table,anchor=east,row 1/.style={nodes={draw=none,scale=1},color=Tropiteal}] (memory)
+      {
+         Value & Address \\
+         & \\
+         256 & 0x78d2 \\
+         & \\
+         0x78d2 & 0xa041 \\
+         & \\
+      };
+      \node[right=.2cm of memory.east,rotate=270,xshift=-1.25cm] {Memory};
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace*{-.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\normalsize\ttfamily]
+int val(*\tikzmark{val}*) = 256;
+int * ptr(*\tikzmark{ptr}*) = &val;
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[line width=1pt,->,>=stealth] 
+    ([shift={(-1.75ex,1.25ex)}] val) .. controls +(0,2cm) and +(-2cm,0) .. ([xshift=-.25em] memory-3-1.west);
+    \draw[line width=1pt,->,>=stealth] 
+    ([shift={(-1.75ex,-.25ex)}] ptr) .. controls +(0,-3cm) and +(7cm,0) .. ([xshift=.25em] memory-5-2.east);
+  \end{tikzpicture}
+
+  \end{onlyenv}
+
+  \begin{onlyenv}<3>
+  \vspace*{-2em}
+  \begin{center}
+    \begin{tikzpicture}[remember picture]
+      \matrix[table,anchor=east,row 1/.style={nodes={draw=none,scale=1},color=Tropiteal}] (memory2)
+      {
+         Value & Address \\
+         & \\
+         256 & 0x78d2 \\
+         ? & 0x78d3 \\
+         0x78d2 & 0xa041 \\
+         0x78d3 & 0xb6d2 \\
+      };
+      \node[right=.2cm of memory2.east,rotate=270,xshift=-1.25cm] {Memory};
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace*{-.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\normalsize\ttfamily]
+int * ptr(*\tikzmark{ptr2}*) = &val;
+int * ptrpp(*\tikzmark{ptrpp}*) = ptr + 1;
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[line width=1pt,->,>=stealth] 
+    ([shift={(-1.75ex,1.25ex)}] ptr2) .. controls +(0,2cm) and +(-2cm,0) .. ([xshift=-.25em] memory2-5-1.west);
+    \draw[line width=1pt,->,>=stealth] 
+    ([shift={(-2.75ex,-.25ex)}] ptrpp) .. controls +(0,-3cm) and +(7cm,0) .. ([xshift=.25em] memory2-6-2.east);
+  \end{tikzpicture}
+
+  \end{onlyenv}
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Pointers}
+
+  You can access the value of the memory the pointer points to by {\color{FeebleWeek}dereferencing} it
+
+  \vspace{2cm}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+int * ptr = &val;
+int half_val = *ptr / 2;
+  \end{lstlisting}
+
+  \vspace{.5em}
+
+  This is why the type of the pointer is important, so the program knows how many bits to read.
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[FeebleWeek] (operator) at (current page.center) [scale=2] {*};
+    \draw[line width=1pt,<-,>=stealth] ([yshift=.15cm] operator.east) -- +(2cm,0) 
+      node[right,align=center,scale=.8] {Dereference\\operator};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The null pointer}
+
+  Sometimes it is useful to be able to say that the pointer doesn't point to anything
+
+  \vspace{.5cm}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+double * ptr = NULL; (*\tikzmark{null}*)
+double * ptr = nullptr; (*\tikzmark{nullptr}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([yshift=.5ex] null) -- +(1.5cm,0)
+      coordinate (layer1)
+      node[right,scale=0.75] {Old style};
+    \draw[transform canvas={yshift=.5ex},pointy arrow] (nullptr) -- (nullptr -| layer1)
+      node[right,scale=0.75] {New style {\color{Tropiteal}\{C++11\}}};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{References}
+
+  A reference works as an alias for a variable
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+int value = 134;
+int & ref  = value;
+int value_half = ref / 2;
+&value == &ref;(*\tikzmark{equal check}*)
+  \end{lstlisting}
+
+  \vspace{1em}
+  In many languages assignment automatically creates references and not copies, e.g. {\color{Tropiteal}JavaScript}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[line width=1pt,<-,>=stealth] ([shift={(.5em, .4ex)}] equal check) -- +(3cm,0)
+      node[right,FeebleWeek] {true};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{What's the deal with {\color{Marty}*} and {\color{Marty}\&} ?}
+
+  In type specifications:
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item {\color{Marty}*} \:declares a pointer
+    \item {\color{Marty}\&} \:declares a reference
+  \end{itemize}
+
+  \vspace{0.5em}
+  As operators
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item {\color{Marty}*} \:converts pointer to reference
+    \item {\color{Marty}\&} \:converts reference to pointer {\fontsize{8pt}{8pt}\selectfont \{sort of\}}
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}auto} type}
+
+  When assigning
+
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw,line width=1pt,FeebleWeek] (var) {type of variable};
+      \node[right= .1cm of var] (eq) {=};
+      \node[draw,line width=1pt,Tropiteal] [right=.1cm of eq] (rhs) {type of expression};
+      \node[right= .1cm of rhs] {;};
+    \end{tikzpicture}
+  \end{center}
+
+  These types are generally the same
+
+  \vspace{1em}
+
+  {\ttfamily\bfseries\color{FeebleWeek}auto} \; = \; whatever the type on the right is
+
+  \CPPEleven
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\color{FeebleWeek}auto} type}
+
+  {\color{FeebleWeek}auto} only picks up the base type
+
+  \vspace{1em}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+const char & char_ref = some_char;
+(*\tikzmark{auto begin}*)auto(*\tikzmark{auto end}*) var = char_ref;
+  \end{lstlisting}
+
+
+  \vspace{2em}
+
+  But you can use type qualifiers on it
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \underlinemark[line width=1.5pt, Marty]{auto begin}{auto end}
+    \coordinate (auto middle) at ($(auto begin) !.5! (auto end)$);
+    \draw[<-,>=stealth,line width=1pt] ([yshift=-.25cm] auto middle) .. controls +(0,-1) and +(-1,0) .. +(2,-.75)
+      node[right] [] {\lstinline!char!};
+  \end{tikzpicture}
+
+  \CPPEleven
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\LARGE C} \hspace{.2em} Style Arrays}
+
+  \begin{columns}
+    \column{0.6\textwidth}
+      One can create a list of objects like this:
+    
+      \vspace{1em}
+    
+      \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+int array[10];
+      \end{lstlisting}
+    
+      \vspace{1em}
+    
+      Places 10 integers consecutively in memory
+    \column{0.4\textwidth}
+
+    \vspace*{-1.5cm}
+    \begin{center}
+      \begin{tikzpicture}
+        \matrix[table,anchor=east,row 1/.style={nodes={draw=none,scale=1},color=Tropiteal}]
+        {
+           Memory \\
+           \lstinline!a[0]! \\
+           \lstinline!a[1]! \\
+           \lstinline!a[2]! \\
+           \lstinline!a[3]! \\
+           \lstinline!a[4]! \\
+           \lstinline!a[5]! \\
+           \lstinline!a[6]! \\
+           \lstinline!a[7]! \\
+           ... \\
+        };
+      \end{tikzpicture}
+    \end{center}
+    \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\LARGE C} \hspace{.2em} Style Arrays}
+
+  As a type qualifier {\large\color{Tropiteal} []} decides how much memory should be reserved
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+int fibonacci_numbers[10];
+  \end{lstlisting}
+
+  \vspace{1em}
+
+  As an operator {\large\color{Tropiteal} []} is used to access the various memory positions
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+fibonacci_numbers[5] = 8;
+fibonacci_numbers[6] = 13;
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\LARGE C} \hspace{.2em} Style Arrays}
+
+  The array is actually just a pointer in disguise
+
+  \begin{center}
+    \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+   array[0] == *array
+    \end{lstlisting}
+  \end{center}
+
+  The {\large\color{Tropiteal} []} operator is also just a shorthand
+
+  \begin{center}
+    \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+   array[n] == *(array + n)
+    \end{lstlisting}
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\LARGE C} \hspace{.2em} Style Arrays}
+
+  One can initialise the array with an initialiser list
+
+  \vspace{.5cm}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+int lucky[](*\tikzmark{size}*) = {4, 12, 42, 7};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-1ex,-.75ex)}] size) -- +(0,-1cm)
+      node[below,xshift=2cm,scale=0.75] {Size of the array inferred from context};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\LARGE C} \hspace{.2em} Style Strings}
+
+  A C style string is simply an array of characters
+
+  \vspace{.5cm}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+char message[] = "How are you all doing?";
+  \end{lstlisting}
+
+  \vspace{.5cm}
+  The final entry is always the null character \lstinline!'\0'!
+
+  \vspace{.5cm}
+  \footnotesize
+  ({\color{Tropiteal}message} has 23 elements)
+  
+\end{frame}
+
+\section{Control Structures}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Controlling program flow}
+
+  So far we have learned to write programs that execute "in a straight line"
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item<2-> What if we want to {\color{Marty}branch}?
+    \item<3-> What if we want to {\color{FeebleWeek}repeat}?
+  \end{itemize}
+
+  \vspace{1em}
+  \uncover<4->{
+    Then we need control structures
+  }
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (begin) at ([xshift=-1.5cm] current page.east);
+    \only<1> {
+      \draw[line width=3pt,->,>=stealth,Tropiteal] ([yshift=-1cm] begin) -- +(0,-1.5cm);
+    }
+
+    \only<2> {
+      \draw[line width=3pt,->,>=stealth,Marty] ([yshift=-1cm] begin) -- ++(0,-.5cm)
+        .. controls +(0,-.3cm) and +(0,.3cm) .. ++(+.3cm,-.5cm) -- ++(0,-.5cm);
+      \draw[line width=6pt,->,>=stealth,WhiteTrash] ([yshift=-1cm] begin) -- ++(0,-.5cm)
+        .. controls +(0,-.3cm) and +(0,.3cm) .. ++(-.3cm,-.5cm) -- ++(0,-.5cm);
+      \draw[line width=3pt,->,>=stealth,Marty] ([yshift=-1cm] begin) -- ++(0,-.5cm)
+        .. controls +(0,-.3cm) and +(0,.3cm) .. ++(-.3cm,-.5cm) -- ++(0,-.5cm);
+    }
+
+    \only<3-> {
+      \draw[line width=3pt,-{Stealth[bend,length=10pt]},shorten >=.2cm,FeebleWeek] ([yshift=-1cm] begin) -- ++(0,-.5cm)
+        .. controls +(0,-.3cm) and +(0,.3cm) .. ++(-.3cm,-.5cm) -- ++(0,-.5cm)
+        .. controls +(0,-.2cm) and +(0,-.2cm) .. ++(.6cm,0) -- ++(0,.5cm)
+        .. controls +(0,.3cm) and +(0,-.3cm) .. ++(-.3cm,.5cm);
+    }
+  \end{tikzpicture}
+ 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Conditionals: {\color{FeebleWeek}if}, {\color{FeebleWeek}else} }
+  
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\large]
+  if ((*\tikzmark{if condition begin}*)       (*\tikzmark{if condition end}*)) {
+  (*\tikzmark{true block}*)
+
+  } else {
+  (*\tikzmark{false block}*)
+
+  }
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south west] at ([shift={(.1cm,-.25cm)}] if condition begin) {condition};
+
+    \draw [-{Stealth[bend]}, line width=1pt,FeebleWeek]
+      ([shift={(1cm,-.2cm)}] if condition begin) .. controls +(0,-1cm) and +(1cm,0) .. ([yshift=-.25cm] true block)
+      node [midway,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt] {true};
+
+    \draw [-{Stealth[bend]}, line width=1pt,Marty]
+      ([shift={(2cm,-.2cm)}] if condition begin) .. controls +(0,-1cm) and +(0,1cm) .. ++(.25cm,-2cm)
+      .. controls +(0,-2cm) and +(1cm,0) .. ([yshift=-.25cm] false block)
+      node [midway,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt] {false};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Conditionals: {\color{FeebleWeek}if}, {\color{FeebleWeek}else} }
+
+  Can also do multiple statements
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+  if ((*\tikzmark{if first cond}*)        ) {
+
+  } else if ((*\tikzmark{if second cond}*)        ) {
+
+  } else {
+
+  }
+  \end{lstlisting}
+
+  \vspace{.5em}
+  It chooses the {\color{Marty}first} condition that matches
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south west] at ([shift={(.1cm,-.25cm)}] if first cond) {condition};
+    \node[anchor=south west] at ([shift={(.1cm,-.25cm)}] if second cond) {condition};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Conditionals: {\color{FeebleWeek}switch}}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\large]
+  switch ((*\tikzmark{switch var}*)      ) {
+    case (*\tikzmark{case var1}*)    :
+    (*\tikzmark{case block1}*)
+    case (*\tikzmark{case var2}*)    :
+    (*\tikzmark{case block2}*)
+    default:
+    (*\tikzmark{case default}*)
+  }
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south west] at ([shift={(.1cm,-.25cm)}] switch var) (var) {variable};
+    \node[anchor=south west] at ([shift={(-.35cm,-.25cm)}] case var1) {value \#1};
+    \node[anchor=south west] at ([shift={(-.35cm,-.25cm)}] case var2) {value \#2};
+
+    \draw [-{Stealth[bend]}, line width=1pt,FeebleWeek]
+      ([xshift=-.4cm] var.south east) .. controls +(1cm,-1cm) and +(1cm,0) .. ([yshift=.1cm] case block1)
+      node [pos=0.7,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt,scale=0.8] {case 1};
+
+    \draw [-{Stealth[bend]}, line width=1pt,Tropiteal]
+      ([xshift=-.2cm] var.south east) .. controls +(2.5cm,-2cm) and +(3cm,0) .. ([yshift=.1cm] case block2)
+      node [pos=0.8,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt,scale=0.8] {case 2};
+
+    \draw [-{Stealth[bend]}, line width=1pt,Marty]
+      (var.south east) .. controls +(3.5cm,-2.166cm) and + (5cm,0) .. ([yshift=.1cm] case default)
+      node [pos=0.85,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt,scale=0.8] {no case};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Loops: {\color{FeebleWeek}for}}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\large]
+for ((*\tikzmark{for init}*)      ;(*\tikzmark{for test}*)      ;(*\tikzmark{for update}*)      ) {
+
+(*\tikzmark{for block}*)
+
+
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south west] at ([shift={(0,-.25cm)}] for init) (init) {initialise};
+    \node[anchor=south west] at ([shift={(-.1cm,-.25cm)}] for test) (check) {condition};
+    \node[anchor=south west] at ([shift={(.2cm,-.38cm)}] for update) (update) {update};
+
+    \draw[-{Stealth[bend]},line width=1pt,Tropiteal]
+      (init.north) .. controls +(0,1cm) and +(0,1cm) .. ([xshift=-.2cm] check.north);
+    \draw[-{Stealth[bend]},line width=1pt,Tropiteal]
+      (update.north) .. controls +(0,1cm) and +(0,1cm) .. ([xshift=.2cm] check.north);
+
+    \draw [-{Stealth[bend]}, line width=1pt,FeebleWeek]
+      ([xshift=-.2cm] check.south) .. controls +(0,-2cm) and +(1cm,0) .. ([yshift=-.25cm] for block)
+      node [midway,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt] {true};
+
+    \draw [-{Stealth[bend]}, line width=1pt,Marty]
+      ([xshift=.2cm] check.south) .. controls +(0,-3cm) and +(1cm,0) .. ([yshift=-3cm] for block)
+      node [midway,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt] {false};
+
+    \draw[line width=3pt,WhiteTrash]
+      ([yshift=-1.25cm] for block) .. controls +(3cm,0) and +(0,-2cm) .. (update.south);
+
+    \draw[-{Stealth[bend]},line width=1pt,Tropiteal]
+      ([yshift=-1.25cm] for block) .. controls +(3cm,0) and +(0,-2cm) .. (update.south);
+
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Loops: {\color{FeebleWeek}for} - example}
+
+  \begin{lstlisting}[basicstyle=\ttfamily]
+int numbers[100];
+
+for (auto i = 0; i < 100; ++i) {
+  numbers[i] = i;
+}
+  \end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Loops: {\color{FeebleWeek}while}}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\large]
+  while ((*\tikzmark{while check}*)      ) {
+  
+  (*\tikzmark{while block}*)
+
+
+  }
+  \end{lstlisting}
+  
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south west] at ([shift={(-.1cm,-.25cm)}] while check) (check) {condition};
+
+    \draw [-{Stealth[bend]}, line width=1pt,FeebleWeek]
+      ([xshift=-.2cm] check.south) .. controls +(0,-2cm) and +(1cm,0) .. ([yshift=-.25cm] while block)
+      node [pos=0.6,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt] {true};
+
+    \draw [-{Stealth[bend]}, line width=1pt,Marty]
+      ([xshift=.2cm] check.south) .. controls +(0,-3cm) and +(1cm,0) .. ([yshift=-3cm] while block)
+      node [pos=0.6,sloped,yshift=.05cm,fill=WhiteTrash,inner sep=2pt] {false};
+
+    \draw[line width=3pt,WhiteTrash]
+      ([yshift=-1.25cm] while block) .. controls +(3cm,0) and +(1cm,-2cm) .. ([xshift=1cm] check.south);
+
+    \draw[-{Stealth[bend]},line width=1pt,Tropiteal]
+      ([yshift=-1.25cm] while block) .. controls +(3cm,0) and +(1cm,-2cm) .. ([xshift=1cm] check.south);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Loops: {\color{FeebleWeek}while} - example}
+
+  \begin{lstlisting}[basicstyle=\ttfamily\fontsize{13pt}{13pt}\selectfont]
+// Calculate 10!
+unsigned factorial = 1;
+unsigned counter = 10;
+
+while (counter > 1) {
+  factorial *= counter;
+  --counter;
+}
+
+std::cout << "10! = " << factorial;
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Exiting loops}
+
+  There are two commands for altering loop flow
+  
+  \vspace{.5em}
+  {\color{Marty}break} and continue
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\large]
+  while ((*\tikzmark{while check}*)      ) {
+
+    break;(*\tikzmark{break tag}*)
+  (*\tikzmark{while box}*)}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  {\color{Marty}break} exits the loop
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south west] at ([shift={(-.1cm,-.25cm)}] while check) (check) {condition};
+    \draw[-{Stealth[bend]},line width=1pt,Marty] ([yshift=.5ex] break tag) .. controls +(1cm,0) and +(4cm,0) .. ([yshift=-.5cm] while box);
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Exiting loops}
+
+  There are two commands for altering loop flow
+  
+  \vspace{.5em}
+  break and {\color{FeebleWeek}continue}
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\large]
+  while ((*\tikzmark{while check}*)      ) {
+
+    continue;(*\tikzmark{continue tag}*)
+  (*\tikzmark{while box}*)}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  {\color{FeebleWeek}continue} jumps back to the loop update
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south west] at ([shift={(-.1cm,-.25cm)}] while check) (check) {condition};
+    \draw[-{Stealth[bend]},line width=1pt,FeebleWeek]
+    ([yshift=.5ex] continue tag) .. controls +(1cm,0) and +(.5cm,-1cm) ..  (check.south east);
+  \end{tikzpicture}
+  
+\end{frame}
+
+\section{Crash Introduction to IO}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Streams}
+
+  In C++ IO is handled by something called streams
+
+  \vspace{.5em}
+  We use the shift operators to interact with the stream objects
+
+  \vspace{1em}
+  \only<1>{
+    Original meaning
+  }
+  \only<2>{
+    Meaning adopted by stream objects
+  }
+
+  \vspace{.5em}
+  \begin{tikzpicture}
+    \node[draw, line width=2pt, FeebleWeek] [inner sep=3pt] (left obj1) {object1};
+    \node[right=0pt of left obj1] (left shift) [font=\ttfamily,Tropiteal,scale=1.5] {<<};
+    \node[right=0pt of left shift] [draw, line width=2pt, Marty] [inner sep=3pt] (left obj2) {object2};
+
+    \node[below=0.25em of left shift] (right shift) [font=\ttfamily,Tropiteal,scale=1.5] {>>};
+    \node[left=0pt of right shift] [draw, line width=2pt, FeebleWeek] [inner sep=3pt] (right obj1) {object1};
+    \node[right=0pt of right shift] [draw, line width=2pt, Marty] [inner sep=3pt] (right obj2) {object2};
+
+    \only<1>{
+    \draw[<-,>=stealth,line width=1pt] ([xshift=.4cm] left obj2.east) -- +(1cm,0)
+      node[right,scale=0.8,anchor=west] {left shift operator};
+    \draw[<-,>=stealth,line width=1pt] ([xshift=.4cm] right obj2.east) -- +(1cm,0)
+      node[right,scale=0.8,anchor=west] {right shift operator};
+    }
+
+    \only<2>{
+    \draw[<-,>=stealth,line width=1pt] ([xshift=.4cm] left obj2.east) -- +(1cm,0)
+      node[right,scale=0.8,anchor=west,align=left] {object2 {\color{Tropiteal}writes to} object1};
+    \draw[<-,>=stealth,line width=1pt] ([xshift=.4cm] right obj2.east) -- +(1cm,0)
+      node[right,scale=0.8,anchor=west,align=left] {object2 {\color{Tropiteal}reads from} object1};
+    }
+    
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Standard in and out}
+
+  The {\ttfamily\bfseries\color{Tropiteal}iostream} library includes two convenient stream objects
+
+  \vspace{1em}
+  {\large{\color{Tropiteal}std}::{\color{Tropiteal}cout}} for writing to console
+
+  \vspace{.5em}
+  {\large{\color{Tropiteal}std}::{\color{Tropiteal}cin}} for reading from keyboard
+
+  \Library{iostream}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Standard in and out - example}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+#include<iostream> (*\tikzmark{include}*)
+
+int main()
+{
+  double input_from_user {0.};
+
+  std::cin >> input_from_user;
+
+  std::cout << "You wrote: \"" << input_from_user
+    << "\"(*\tikzmark{char escape}*)" << (*\tikzmark{endl begin}*)std::endl(*\tikzmark{endl end}*);
+}
+  \end{lstlisting}
+
+  \only<2>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[<-,>=stealth,line width=1pt] ([yshift=.35ex] include) -- +(1.5cm,0)
+      node[right, align=left, scale=0.8] {%
+        To gain access to\\
+        {\color{Tropiteal}std}::{\color{Tropiteal}cout} and {\color{Tropiteal}std}::{\color{Tropiteal}cin}
+      };
+
+      \draw[<-,>=stealth,line width=1pt] ([shift={(-.6ex,-.5ex)}] char escape) -- +(0,-.5cm)
+        node[below,scale=0.8] {Character escape};
+
+      \coordinate (endl middle) at ($(endl begin) !.5! (endl end)$);
+      \draw[<-,>=stealth,line width=1pt] ([yshift=-.25em] endl middle) .. controls +(0,-.5cm) and +(-1cm,0) .. +(2cm, -1cm)
+        node[right,scale=0.8,align=left] {Flush stream and\\create newline};
+  \end{tikzpicture}
+  }
+
+\end{frame}
+
+\section{Coding Environments}
+
+\frame[plain]{\sectionpage}
+
+\LiveFrame
+
+\section{Programming Practices}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Good Programming Practices}
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item {\color{Marty}Do not} use global variables {\fontsize{9pt}{9pt}\selectfont (constants are OK)}
+    \item {\color{FeebleWeek}Always} initialise built in functions with a default value
+    \item {\color{FeebleWeek}Always} use descriptive variable names \\
+      {\fontsize{9pt}{9pt}\selectfont (and stay away from magic numbers)}
+    \item Use {\color{FeebleWeek}const} consistently
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Good Programming Practices}
+
+  Stay away from C functionality that has been superseded
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item Macros, especially {\ttfamily\color{sorange}\#define}
+    \item Pointers to \lstinline!void!
+    \item \lstinline!NULL! for empty pointers
+    \item \lstinline!printf! and \lstinline!scanf! for IO
+  \end{itemize}
+
+\end{frame}
+
+\section{Recap}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Recap Day 1}
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item A C++ program consists of {\color{Marty}sentences} and {\color{Marty}blocks}
+    \item The type of the variable tells the compiler
+    \vspace{.3em}
+    \begin{itemize}
+    \setlength\itemsep{0.5em}
+      \item How much memory the variable needs
+      \item What actions are allowed on the variable
+    \end{itemize}
+    \item There are four basic types in C++
+    \vspace{.3em}
+    \begin{itemize}
+    \setlength\itemsep{0.5em}
+      \item \lstinline!bool!, \lstinline!char!, \lstinline!int!, \lstinline!float!
+    \end{itemize}
+    \item Types can be modified with qualifiers
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Recap Day 1}
+
+  \begin{itemize}
+    \setlength\itemsep{0.5em}
+    \item Use pointers to examine memory locations
+    \item References if you want to alias a variable
+    \item Use {\color{FeebleWeek}if} and {\color{FeebleWeek}switch} to make branches in your code
+    \item Use {\color{Marty}for} and {\color{Marty}while} to repeat stuff
+  \end{itemize}
+  
+\end{frame}
+
+\end{document}
