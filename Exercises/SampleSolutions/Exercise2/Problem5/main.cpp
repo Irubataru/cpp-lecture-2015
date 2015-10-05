@@ -36,6 +36,6 @@ int main(int, char**)
   std::cout << "Integral of the gaussian distribution with parameters:\n"
     << "    mu = " << args2[0] << "\n"
     << " sigma = " << args2[1] << "\n"
-    << "from -1 to 4 is: " << integrate_w_args(-5,5,1000,gaussian,args2) << std::endl;
+    << "from -1 to 4 is: " << integrate_w_args(-1,4,1000,gaussian,args2) << std::endl;
 
 }
