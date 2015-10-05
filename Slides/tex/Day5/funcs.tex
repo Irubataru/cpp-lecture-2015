@@ -1,0 +1,118 @@
+\usepackage{array}
+
+% ------------------------------------------------ %
+% tikz functions to place markers on beamer slides %
+% ------------------------------------------------ %
+
+\input{tikz_supermark.tex}
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \coordinate (#1);}
+
+% -------------- %
+% Special frames %
+% -------------- %
+
+\newcommand{\LiveFrame}{%
+\begin{frame}[plain]
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \fill[FeebleWeek] (current page.north east) rectangle (current page.south west);
+    \node at ([yshift=-.25em] current page.center) [font=\LARGE, WhiteTrash] {Live Example};
+  \end{tikzpicture}
+\end{frame}
+}
+
+\newcommand{\CPPEleven}{%
+\nointerlineskip
+\begin{tikzpicture}[overlay,remember picture]
+  \node[anchor=south east] at ( current page.south east) [color=Tropiteal] {\{C++11\}};
+\end{tikzpicture}
+}
+
+\newcommand{\CPPFourteen}{%
+\nointerlineskip
+\begin{tikzpicture}[overlay,remember picture]
+  \node[anchor=south east] at ( current page.south east) [color=Tropiteal] {\{C++14\}};
+\end{tikzpicture}
+}
+
+\newcommand{\BadPractice}{%
+\nointerlineskip
+\begin{tikzpicture}[overlay,remember picture]
+  \node[anchor=south east] at ( current page.south east) [color=Marty] {Bad Practice};
+\end{tikzpicture}
+}
+
+\newcommand{\ClassLine}{%
+\nointerlineskip
+\begin{tikzpicture}[overlay,remember picture]
+  \draw[transform canvas={yshift=-1.7cm},thin] (current page.north west) -- (current page.north east);
+\end{tikzpicture}
+}
+
+\newcommand{\Library}[2][0pt]{%
+\nointerlineskip
+\begin{tikzpicture}[overlay,remember picture]
+  \node[anchor=south east] at ([xshift=#1] current page.south east) [color=Marty,scale=0.9]
+    [font=\fontspec{Yanone Kaffeesatz Regular}] {\#include<#2>};
+\end{tikzpicture}
+}
+
+% ----------------------------------------- %
+% Various Commands for inline codecolouring %
+% ----------------------------------------- %
+
+\newcommand{\inobj}[1]{%
+  {\color{Tropiteal}#1}}
+
+\newcommand{\inkey}[1]{%
+  {\color{FeebleWeek}#1}}
+
+\newcommand{\innorm}[1]{%
+  {\color{ICantExpress}#1}}
+
+\newcommand{\std}[1]{%
+  \inobj{std}\innorm{::}\inkey{#1}}
+
+% ----------------------------------------------------- %
+% Various tikz based functions to style up the document %
+% ----------------------------------------------------- %
+
+\newcommand{\underlinemark}[3][line width=1.5pt, FeebleWeek]{%
+\draw[transform canvas={yshift=-.15cm}, #1]
+  ([xshift=-1pt] #2) -- ([xshift=2pt] #3);
+}
+
+\newcommand{\StrikeThrough}[2][Marty]{%
+  \tikz[baseline=(strokethrough.base)]{%
+    \node[inner sep=0pt, outer sep=0pt] (strokethrough) {\strut{}#2};
+    \draw[line width=2pt,#1] ([xshift=-3pt] strokethrough.west) -- ([xshift=3pt] strokethrough.east);
+  }
+}
+
+\newcommand{\Highlight}[3][opacity=0.4,AtomicBikini]{%
+\nointerlineskip
+\begin{tikzpicture}[overlay,remember picture]
+  \path (pic cs:#2,{(0,0)}) coordinate (a);
+  \path (pic cs:#3,{(0,0)}) coordinate (b);
+  \fill[#1] (a -| current page.north west) -- ++(0,1.4ex) -- ++(\paperwidth,0)
+  -- (b -| current page.north east) -- ++(0,-.4ex) -- ++(-\paperwidth,0) -- cycle;
+\end{tikzpicture}
+}
+
+\newcommand{\Dimtext}[2]%
+{
+  { \transparent{0.7}
+  \begin{tikzpicture}[overlay, remember picture]
+    \fill[white] ( #1 -| current page.north west) -- ++(0,.8em) -- ++(\paperwidth,0) -- (#2 -| current page.north east)
+   -- ++(0,-.5em) -- ++(-\paperwidth,0) -- cycle;
+  \end{tikzpicture}
+  }
+}
+
+% -------------- %
+% Array commands %
+% -------------- %
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}

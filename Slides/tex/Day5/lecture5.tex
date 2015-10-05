@@ -1,0 +1,1626 @@
+\documentclass[14pt,a4paper,dvipsnames,usenames]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{amsmath,varwidth}
+\usepackage{tikz,tikz-uml,xparse,url}
+\usepackage{listings,algpseudocode}
+\usepackage[quiet]{mathspec}
+\usepackage{varwidth}
+
+\setmainfont[
+  ItalicFont={Yanone Kaffeesatz Light},
+  Scale=1.3,
+  LetterSpace=2.0
+]{Yanone Kaffeesatz Bold}
+
+\setmonofont{Hack}
+
+\input{style.tex}
+\input{defs.tex}
+\input{funcs.tex}
+
+\usefonttheme{serif}
+
+%\setbeameroption{show notes}
+
+\title[C++ Day5]{Introduction to the C++\newline{}Programming Language\newline{}\newline{}\fontsize{16pt}{16pt}\selectfont{}Day 5}
+\author{\texorpdfstring{%
+    Jonas Rylund Glesaaen\newline\fontsize{12pt}{12pt}\selectfont\texttt{jonas@glesaaen.com}%
+  }{%
+    Jonas Rylund Glesaaen}}
+\date{October 2nd 2015}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{What will we learn?}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item \StrikeThrough{Basic C++ syntax}
+    \item \StrikeThrough{Control structures}
+    \item \StrikeThrough{Functions}
+    \item \StrikeThrough{Structs and classes}
+    \item Templates and STL \hspace{.5cm}{\color{Marty}(Thursday and today)}
+    \item Exceptions \hspace{.5cm}{\color{Marty}(today)}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Today's topics}
+
+  \tableofcontents
+  
+\end{frame}
+
+\section{Standard Template Library}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{What is the STL?}
+
+  A compilation of template classes and functions with a consistent interface design, it contains
+
+  \begin{itemize}
+    \setlength\itemsep{.4em}
+    \item Container classes
+    \item Iterators
+    \item Generic algorithms
+    \item Smart pointers {\footnotesize\color{Tropiteal}\{C++11\}}
+    \item Random number generation {\footnotesize\color{Tropiteal}\{C++11\}}
+    \item ...and more
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Motivation}
+
+  \begin{center}
+  \begin{tikzpicture}
+    \node [use as bounding box,font=\fontspec{Yanone Kaffeesatz Regular}] (quote) {%
+      \begin{minipage}{0.85\textwidth}
+        Using the STL is fun, but using it effectively is outrageous fun, the kind of fun
+        where they have to drag you away from the keyboard, because you just can't believe
+        the good time you're having.
+      \end{minipage}
+    };
+    \node at (quote.south east) [font=\fontspec{Yanone Kaffeesatz Regular},Tropiteal] {Scott Meyers};
+  \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Containers}
+
+  We have seen two ways of storing larger chunks of data in C++ so far
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.3em}
+    \item arrays 
+    \item linked lists
+  \end{itemize}
+
+  \vspace{.5em}
+  The STL contain these two as well as many more containers you can use for all your data storage needs
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Standard \underline{Template} Library}
+
+  All the storage containers are templates
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item \lstinline[morekeywords={vector}]!std::vector<Penguin>!
+    \item \lstinline[morekeywords={list}]!std::list<Song>!
+    \item \lstinline[morekeywords={stack}]!std::stack<Card>!
+    \item \lstinline[morekeywords={array}]!std::array<Hedgehog,10>!
+    \item \lstinline[morekeywords={map,string}]!std::map<Coordinate,Treasure>!
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Sequential containers}
+
+  Containers where the data is stored one after another
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item \lstinline!std::vector! \tikzmark{vector}
+    \item \lstinline!std::array! {\footnotesize\color{Tropiteal}\{C++11\}} \tikzmark{array}
+    \item \lstinline!std::list!
+    \item \lstinline!std::stack! \tikzmark{fifo}
+    \item \lstinline!std::queue!
+  \end{itemize}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (vector begin) at ([yshift=1.25ex] vector);
+    \coordinate (array end) at ([yshift=-.5ex] array);
+    \coordinate (layer1) at ([xshift=.5cm] current page.north);
+
+    \draw[decorate,decoration={brace,amplitude=5pt},line width=1pt]
+      (layer1 |- vector begin) -- (layer1 |- array end)
+      node[midway, right=.5em, scale=0.75,align=left] {Can (and should)\\replace C arrays};
+
+    \draw[pointy arrow] ([shift={(.5cm,.5ex)}] fifo) -- +(1.5cm,0)
+      node[right,scale=0.75] {First in, first out};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{vector and array}
+
+  Elements are also stored sequential in memory
+
+  \vspace{.5em}
+  Can access the elements in the arrays through:
+  
+  \vspace{.3em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item The access operator {\ttfamily\color{Tropiteal}[]}
+    \item The \lstinline!at()! function \tikzmark{at function}
+  \end{itemize}
+
+  \vspace{.5em}
+  The vector class has almost no overhead and is always preferred to dynamic C arrays
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow,line width=.5pt] ([shift={(.5cm,.5ex)}] at function) -- +(1.5cm,0)
+      node[right,scale=0.6] {Includes bounds check};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\inkey{vector}}
+  \fontspec{Yanone Kaffeesatz Regular}
+
+  {\large Container that does sequential dynamic arrays}
+
+  \vspace{.5cm}
+  {\large\color{Tropiteal}Notable functions}\\[2pt]
+
+  \hspace*{-.37cm}
+  \begin{tikzpicture}
+  \matrix (functions) [
+    matrix of nodes,
+    column 1/.style={anchor=base west},
+    column 2/.style={anchor=base west,text width=6.5cm,inner xsep=0pt,align=left},
+    column sep=.3cm
+  ] {
+  {\color{ICantExpress!80!WhiteTrash}(constructor)}(\inkey{size\_t}) &
+  sets the initial size \\
+  \inkey{operator}[](\inkey{size\_t}) & access nth element \\
+  \inobj{at}(\inkey{size\_t}) & access nth element w/ bounds check \\
+  \inobj{resize}(\inkey{size\_t}) & resize the vector \\
+  \inobj{front}(), \inobj{back}() & access first/last element \\
+  \inobj{size}() & get current size of vector \\
+  };
+
+  \draw[Tropiteal] (functions-1-1.north west) -- (functions-1-2.north east);
+  \draw[Tropiteal] (functions-2-1.north west) -- (functions-2-2.north east);
+  \draw[Tropiteal] (functions-3-1.north west) -- (functions-3-2.north east);
+  \draw[Tropiteal] (functions-4-1.north west) -- (functions-4-2.north east);
+  \draw[Tropiteal] (functions-5-1.north west) -- (functions-5-2.north east);
+  \draw[Tropiteal] (functions-6-1.north west) -- (functions-6-2.north east);
+  \end{tikzpicture}
+
+  \Library{vector}
+
+  \ClassLine
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Linked lists}
+
+  Elements are not sequential in memory
+
+  \vspace{1cm}
+  No direct access of individual elements, we need to navigate through the list structure
+
+  \vspace{1cm}
+  Deleting and inserting are both really cheap
+  
+  \Library{list}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Initialiser lists}
+
+  A convenient way of initialising containers is by listing their initial content
+
+  \vspace{.5cm}
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+std::vector<int> lucky_numbers {12, 5, 42};
+std::list<char> the_word {'b', 'i', 'r', 'd'};
+  \end{lstlisting}
+
+  \vspace{.5cm}
+  Can create similar constructors for our own classes by using the \std{initializer\_list} container
+
+  \CPPEleven
+
+  \Library[-2cm]{initializer\_list}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{C++11 constructors}
+
+  {\Large\color{Marty}Note}
+
+  \vspace{.2cm}
+  Using C++11 constructor notation {\large\color{Tropiteal}\{\}} will pick out initialiser list constructors first
+
+  \vspace{.5cm}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\fontsize{12pt}{12pt}\selectfont\ttfamily]
+std::vector zero_vector {0}; (*\tikzmark{constr 11}*)
+std::vector zero_vector (0); (*\tikzmark{constr pre}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (text) at ([yshift=-1.5cm] constr 11);
+    \only<1>{
+    \draw[pointy arrow] ([yshift=.4ex] constr 11) .. controls +(1cm,0) and +(1cm,0) .. (text)
+      node[left,scale=.75] {Vector of length 1, with element 0};
+    }
+    \only<2>{
+    \draw[pointy arrow] ([yshift=.4ex] constr pre) .. controls +(.5cm,0) and +(.5cm,0) .. (text)
+      node[left,scale=.75] {Vector of length 0};
+    }
+  \end{tikzpicture}
+  
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Associative containers}
+
+  The elements are sorted, and searches are very quick
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item \lstinline!std::set!\\
+      {\fontspec{Yanone Kaffeesatz Regular}
+        collection of unique elements, sorted
+      }
+    \item \lstinline!std::map!\\
+      {\fontspec{Yanone Kaffeesatz Regular}
+        collection of key-value pairs, keys unique and sorted
+      }
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Complexity}
+
+    \begin{tikzpicture}[remember picture,
+      good/.style={
+        draw, scale=0.75, fill=AtomicBikini,
+        text width=1.5cm,align=center
+      },
+      med/.style={
+        draw, scale=0.75, fill=AtomicBikini!50!ConradGold,
+        text width=1.5cm,align=center
+      },
+      ok/.style={
+        draw, scale=0.75, fill=ConradGold,
+        text width=1.5cm,align=center
+      }]
+      \matrix [
+        nodes={font=\fontspec{Yanone Kaffeesatz Regular}},
+        column sep=.75cm,
+        ] (complexity)
+      {
+                         & \node {Access};     & \node {Search};     & \node {Insert};     \\
+         \node {Array};  & \node[good] {O(1)}; & \node[ok] {O(n)};   & \node[ok] {O(n)};   \\
+         \node {Stack};  & \node[ok] {O(n)};   & \node[ok] {O(n)};   & \node[good] {O(1)}; \\
+         \node {List};   & \node[ok] {O(n)};   & \node[ok] {O(n)};   & \node[good] {O(1)}; \\
+         \node {Map};    & \node {-};          & \node[good] {O(1)}; & \node[good] {O(1)}; \\
+         \node {Binary tree}; & \node[med] {O(log(n))}; & \node[med] {O(log(n))}; & \node[med] {O(log(n))}; \\
+      };
+    \end{tikzpicture}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=south east] at ( current page.south east) [scale=0.6] {*best case};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{What container to choose}
+
+  \begin{center}\Large
+    99\% of the time you will\\use {\color{FeebleWeek}vector} or {\color{FeebleWeek}array}
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{What container to choose}
+
+  Otherwise make a careful decision based on what you need the container for
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Are you going to insert elements in the middle of the container?
+    \item What are your iterator needs?
+    \item Do you need a fixed ordering?
+    \item Is memory consistency important?
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Iterators}
+
+  For many of the containers in STL, direct access to an element is not possible, we somehow have to traverse the container
+  structure, iterate if you will
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Iterators}
+
+  An iterator points to an element of a container
+
+  \vspace{.5cm}
+  \hspace{1cm} \lstinline!*iterator! 
+
+  \vspace{1cm}
+  and it can move to the next element of the container
+
+  \vspace{.5cm}
+  \hspace{1cm} \lstinline!++iterator!
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Iterator example}
+
+  \begin{lstlisting}[deletekeywords={set}]
+#include<set>
+#include<cctype>
+  \end{lstlisting}
+  \begin{lstlisting}[]
+int main()
+{
+  std::set<char> lower_set {'a', 'q', 'k', 'p'};
+  std::set<char> upper_set;
+
+  for (auto it  = lower_set.begin();
+            it != lower_set.end();   ++it)
+    upper_set.insert(std::toupper(*it));
+}
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Iterator interface}
+
+  Most of the containers in STL have iterators,\\and their interface is uniform
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+container.begin(); (*\tikzmark{begin iterator}*)
+container.end(); (*\tikzmark{end iterator}*)
+
+++iterator; (*\tikzmark{advance mark}*)
+ *iterator; (*\tikzmark{dereference mark}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (begin) at ([yshift=.5ex] begin iterator);
+    \coordinate (end) at ([yshift=.5ex] end iterator);
+    \coordinate (advance) at ([yshift=.5ex] advance mark);
+    \coordinate (dereference) at ([yshift=.5ex] dereference mark);
+    \coordinate (layer1) at ([xshift=2cm] current page.north);
+    \coordinate (layer2) at ([xshift=.5cm] current page.north);
+
+    \only<1>{
+    \draw[pointy arrow] (begin) -- (begin -| layer1)
+      node[right,scale=0.75,align=left,yshift=1ex] {First element\\of the container};
+    \draw[pointy arrow] (end) -- (end -| layer1)
+      node[right,scale=0.75,align=left,yshift=-.8ex] {One past the\\final element};
+    }
+
+    \only<2>{
+    \draw[pointy arrow] (advance) -- (advance -| layer2)
+      node[right,scale=0.75,align=left] {Move to the next element};
+    \draw[pointy arrow] (dereference) -- (dereference -| layer2)
+      node[right,scale=0.75,align=left] {Value of current element};
+    }
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Range based for loops}
+  
+  A cleaner way of iterating through containers
+  
+  \vspace{.75cm}
+  \begin{lstlisting}[morekeywords={Employee}]
+std::vector<Employee> employees;
+
+//...
+
+for (auto & worker : employees) {
+  worker.work();
+}
+  \end{lstlisting}
+
+  \vspace{.5cm}
+  But it is only syntactic sugar
+
+  \CPPEleven
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Streams}
+
+  Streams are standardised input/output objects in C++
+
+  \vspace{1em}
+  It is possible to create your own input- or output stream objects that
+  have other sinks and sources than the two we have used so far
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \fontspec{Yanone Kaffeesatz Regular}
+
+  \begin{center}
+  \begin{tikzpicture}[
+    class/.style={
+      draw, rounded corners,
+      line width=.5pt,
+      minimum width=2.5cm,
+      fill=TealDrop!60!WhiteTrash
+    },
+    inherit/.style={
+      line width=1pt,
+      {Triangle[open]}-,
+      shorten <=3pt
+    }]
+    \matrix (ios) [
+      matrix of nodes,
+      nodes in empty cells,
+      column sep=1.5cm,
+      row sep=1.2cm,
+      ]
+    {
+      & & & & \\
+      & & & & \\
+      & & & & \\
+      & & & & \\
+      & & & & \\
+      & & & & \\
+    };
+    \node[class] at (ios-1-3) (base) {ios\_base};
+    \node[class] at (ios-2-3) (ios cl) {ios}
+      edge[inherit,shorten <=1pt] (base);
+    \only<1>{
+    \node[class] at (ios-3-2) (istream) {istream}
+      edge[inherit] (ios cl);
+    \node[class] at (ios-3-4) (ostream) {ostream}
+      edge[inherit] (ios cl);
+    }
+    \only<2->{
+    \node[class] at (ios-3-2) (istream) {istream}
+      edge[inherit,FeebleWeek] (ios cl);
+    \node[class] at (ios-3-4) (ostream) {ostream}
+      edge[inherit,FeebleWeek] (ios cl);
+    }
+    \node[class] at (ios-4-3) (iostream) {iostream}
+      edge[inherit] (ostream)
+      edge[inherit] (istream);
+
+    \node[class] at (ios-5-1) {istringstream}
+      edge[inherit] (istream);
+    \node[class] at (ios-5-3) {stringstream}
+      edge[inherit,shorten <=1pt] (iostream);
+    \node[class] at (ios-5-5) {ostringstream}
+      edge[inherit] (ostream);
+    \node[class] at (ios-6-1) {ifstream}
+      edge[inherit,bend right=35] (istream);
+    \node[class] at (ios-6-3) {fstream}
+      edge[inherit,bend right=67] (iostream);
+    \node[class] at (ios-6-5) {ofstream}
+      edge[inherit,bend left=35] (ostream);
+
+    \only<2>{
+      \node [above=.3cm of ostream] [scale=0.85,FeebleWeek] {virtual};
+      \node [above=.3cm of istream] [scale=0.85,FeebleWeek] {virtual};
+
+    }
+  \end{tikzpicture}
+  \end{center}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=north west, inner sep=.3cm] at (current page.north west)
+      [font=\fontspec{Yanone Kaffeesatz Bold}\large]
+      {I/O Class Hierarchy};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\color{ICantExpress}{\color{FeebleWeek}ifstream}, {\color{FeebleWeek}ofstream}, {\color{FeebleWeek}fstream}}
+  \fontspec{Yanone Kaffeesatz Regular}
+
+  {\large Stream object for files}
+
+  \vspace{.5cm}
+  {\large\color{Tropiteal}Notable functions}\\[2pt]
+
+  \hspace*{-.37cm}
+  \begin{tikzpicture}
+  \matrix (functions) [
+    matrix of nodes,
+    column 1/.style={anchor=base west},
+    column 2/.style={anchor=base west,text width=6.5cm,inner xsep=0pt,align=left},
+    column sep=.5cm
+  ] {
+  {\color{ICantExpress!80!WhiteTrash}(constructor)}(\std{string}) &
+  opens the file with the given filename \\
+  {\color{FeebleWeek}operator}<<( ... ) & writes to the file\\
+  {\color{FeebleWeek}operator}>>( ... ) & reads from the file\\
+  {\color{Tropiteal}open}(\std{string}) &
+  opens the file with the given filename \\
+  {\color{Tropiteal}close}( ) &  closes the file buffer\\
+  {\color{Tropiteal}is\_open}( ) & checks if the file was opened correctly\\
+  };
+
+  \draw[Tropiteal] (functions-1-1.north west) -- (functions-1-2.north east);
+  \draw[Tropiteal] (functions-2-1.north west) -- (functions-2-2.north east);
+  \draw[Tropiteal] (functions-3-1.north west) -- (functions-3-2.north east);
+  \draw[Tropiteal] (functions-4-1.north west) -- (functions-4-2.north east);
+  \draw[Tropiteal] (functions-5-1.north west) -- (functions-5-2.north east);
+  \draw[Tropiteal] (functions-6-1.north west) -- (functions-6-2.north east);
+  \end{tikzpicture}
+
+  \ClassLine
+
+  \Library{fstream}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{File streams - example}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={ofstream}]
+std::ofstream to_file_stream {"file.txt"};
+
+if (!to_file_stream) {
+  std::cerr << "Could not open file";
+  return 1;
+}
+
+to_file_stream << "Hello world" << std::endl;
+to_file_stream.close();
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+
+  \frametitle{\color{ICantExpress}\large{\color{FeebleWeek}istringstream}, {\color{FeebleWeek}ostringstream}, {\color{FeebleWeek}stringstream}}
+  \fontspec{Yanone Kaffeesatz Regular}
+
+  {\large Stream object for the \std{string} class}
+
+  \vspace{.75cm}
+  {\large\color{Tropiteal}Notable functions}\\[2pt]
+
+  \hspace*{-.25cm}
+  \begin{tikzpicture}
+  \matrix (functions) [
+    matrix of nodes,
+    column 1/.style={anchor=base west},
+    column 2/.style={anchor=base west,text width=6.5cm,inner xsep=0pt,align=left},
+    column sep=.5cm
+  ] {
+  {\color{ICantExpress!80!WhiteTrash}(constructor)}(\std{string}) &
+  set initial value of the string object \\
+  {\color{FeebleWeek}operator}<<( ... ) & writes to the string\\
+  {\color{FeebleWeek}operator}>>( ... ) & reads from the string\\
+  {\color{Tropiteal}str}( ) & access the underlying string object\\
+  {\color{Tropiteal}str}(\std{string}) & change value of the string object\\
+  };
+
+  \draw[Tropiteal] (functions-1-1.north west) -- (functions-1-2.north east);
+  \draw[Tropiteal] (functions-2-1.north west) -- (functions-2-2.north east);
+  \draw[Tropiteal] (functions-3-1.north west) -- (functions-3-2.north east);
+  \draw[Tropiteal] (functions-4-1.north west) -- (functions-4-2.north east);
+  \draw[Tropiteal] (functions-5-1.north west) -- (functions-5-2.north east);
+  \end{tikzpicture}
+  
+  \ClassLine
+
+  \Library{sstream}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Stream example}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+void sayHello(std::ostream & os)
+{
+  os << "Hello!" << std::endl;
+}
+
+int main()
+{
+  std::ofstream ofs {"file.txt"};
+  sayHello(ofs);
+  ofs.close();
+
+  std::ostringstream oss;
+  sayHello(oss);
+
+  auto hello_string = oss.str();
+}
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Function objects}
+
+  Objects with an overloaded call operator {\large\color{Tropiteal}()}
+
+  \begin{overlayarea}{\textwidth}{3cm}
+
+    \begin{onlyenv}<1>
+      \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\fontsize{9pt}{9pt}\selectfont\ttfamily]
+struct Greater
+{
+  bool operator() (const double a, const double b)
+  {
+    return a > b;
+  }
+};
+
+auto greater = Greater {};
+      \end{lstlisting}
+    \end{onlyenv}
+
+    \begin{onlyenv}<2>
+      \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\fontsize{9pt}{9pt}\selectfont\ttfamily]
+auto greater = [](const double a, const double b)
+{
+  return a > b;
+};
+      \end{lstlisting}
+    \end{onlyenv}
+
+  \end{overlayarea}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The functional library}
+
+  The STL has a uniform interface for these
+
+  \vspace{.5cm}
+  \begin{lstlisting}[basicstyle=\ttfamily]
+template <class R, class... Args>
+class function<R(Args...)> {...};
+  \end{lstlisting}
+
+  \vspace{.5cm}
+  Which can bind to anything with the correct call operator
+
+  \Library{functional}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The functional library - example}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\fontsize{8pt}{8pt}\selectfont\ttfamily]
+void printInt(int i)
+{
+  std::cout << i;
+}
+
+struct IntPrint
+{
+  void operator() (int i)
+  {
+    std::cout << i;
+  }
+};
+  \end{lstlisting} 
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\fontsize{8pt}{8pt}\selectfont\ttfamily,morekeywords={function,IntPrint}]
+int main()
+{
+  std::function<void(int)> f1 = printInt;
+  std::function<void(int)> f2 = IntPrint {};
+  std::function<void(int)> f3 = [](int i){printInt(i);};
+}
+  \end{lstlisting} 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Argument capture}
+
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+[a,&b](*\tikzmark{capture}*) (/* args */) {/* body */};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-2ex,-.5ex)}] capture) .. controls +(0,-1cm) and +(-1cm,0) .. +(1.5cm,-1cm)
+      node[right,scale=0.95] {Capture {\color{Tropiteal}b} by reference};
+    \draw[pointy arrow] ([shift={(-4ex,1.5ex)}] capture) .. controls +(0,1cm) and +(-1cm,0) .. +(1.5cm,1cm)
+      node[right,scale=0.95] {Capture {\color{Tropiteal}a} by value};
+  \end{tikzpicture}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+[&](*\tikzmark{capture all}*) (/* args */) {/* body */};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-1.3ex,-.5ex)}] capture all) -- +(0,-1cm)
+      node[below,xshift=2.5cm] {Capture everything by {\color{FeebleWeek}reference}};
+  \end{tikzpicture}
+  \end{onlyenv}
+
+  \begin{onlyenv}<3>
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily]
+[=](*\tikzmark{capture all val}*) (/* args */) {/* body */};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-1.3ex,1.5ex)}] capture all val) -- +(0,1cm)
+      node[above,xshift=2.5cm] {Capture everything by {\color{Marty}value}};
+  \end{tikzpicture}
+  \end{onlyenv}
+
+  \CPPEleven
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Closures in C++}
+
+  \only<1>{
+  A closure is the concept of storing values inside of functions
+
+  \vspace{1cm}
+  We can use the lambda function capture for that
+  }
+
+  \begin{onlyenv}<2->
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\fontsize{8pt}{8pt}\selectfont\ttfamily,morekeywords={function}]
+std::function<std::string(std::string)>
+Surround(std::string surr)
+{
+  return [surr](std::string expr)
+  {
+    return surr[0] + expr + surr[1];
+  };
+}
+
+int main()
+{
+  auto square_brackets = Surround("[]");
+  auto quotation_marks = Surround("\"\"");
+
+  std::cout << square_brackets("Hello") << std::endl; (*\tikzmark{square hello}*)
+  std::cout << quotation_marks("Hello") << std::endl; (*\tikzmark{quotation hello}*)
+}
+  \end{lstlisting}
+
+  \only<3>{
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-4ex,1.5ex)}] square hello) -- +(0,1cm)
+      node [scale=0.75,above] {Prints {\color{Marty}[Hello]}};
+    \draw[pointy arrow] ([shift={(-4ex,-.5ex)}] quotation hello) .. controls +(0,-.5cm) and +(.5cm,0) .. +(-.5cm,-.75cm)
+      node [scale=0.75,left] {Prints {\color{Marty}"Hello"}};
+  \end{tikzpicture}
+  }
+
+  \CPPEleven
+
+  \end{onlyenv}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Algorithms}
+
+  There is a large number of commonly used algorithms in the STL
+
+  \vspace{1cm}
+  Uniform interface that go well with the iterators
+
+  \Library{algorithm}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Algorithms}
+
+  \begin{overlayarea}{\textwidth}{5cm}
+  \begin{onlyenv}<1>
+  \begin{lstlisting}[]
+template <class Itt, class T>
+  \end{lstlisting}\vspace*{-1ex}
+  \begin{lstlisting}[morekeywords={Itt,T}]
+Itt find(Itt begin, Itt end, const T& value);
+  \end{lstlisting}
+
+  \vspace{1em}
+  Find the first element equal to {\color{Tropiteal}value} in a container,\\
+  returns an iterator pointing to the element, or {\color{Tropiteal}end} if not found
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[]
+template <class Itt, class Unary>
+  \end{lstlisting}\vspace*{-1ex}
+  \begin{lstlisting}[morekeywords={Itt,Unary}]
+Unary for_each(Itt begin, Itt end, Unary f);
+  \end{lstlisting}
+
+  \vspace{1em}
+  Apply the function {\color{Tropiteal}f} to every element in the container\\
+  returns the final state of the function object {\color{Tropiteal}f}
+  \end{onlyenv}
+
+  \begin{onlyenv}<3>
+  \begin{lstlisting}[]
+template <class Itt>
+  \end{lstlisting}\vspace*{-1ex}
+  \begin{lstlisting}[morekeywords={Itt}]
+void sort(Itt begin, Itt end);
+  \end{lstlisting}
+
+  \vspace{1em}
+  Sorts the range specified by {\color{Tropiteal}begin} and {\color{Tropiteal}end}
+  \end{onlyenv}
+
+  \begin{onlyenv}<4>
+  \begin{lstlisting}[]
+template <class Itt, class Compare>
+  \end{lstlisting}\vspace*{-1ex}
+  \begin{lstlisting}[morekeywords={Itt,Compare}]
+void sort(Itt begin, Itt end, Compare compare);
+  \end{lstlisting}
+
+  \vspace{1em}
+  Sorts the range specified by {\color{Tropiteal}begin} and {\color{Tropiteal}end} using the supplied comparison operator
+  \end{onlyenv}
+  \end{overlayarea}
+  
+  \Library{algorithm}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Less than operator is king}
+
+  STL uses the less than operator for all comparisons
+
+  \vspace{.75em}
+  Equality:\\
+  \begin{lstlisting}[basicstyle=\ttfamily]
+!(a < b) and !(b < a)
+  \end{lstlisting}
+
+  \vspace{.75em}
+  Inequality:\\
+  \begin{lstlisting}[basicstyle=\ttfamily]
+(a < b) or (b < a)
+  \end{lstlisting}
+
+  \vspace{.75em}
+  It is important to implement a proper less than
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Capture in algorithms}
+
+  \begin{lstlisting}[escapeinside={(*}{*)}]
+std::vector<double> earnings {};
+
+// ...
+
+double total {0.};
+
+std::for_each(earnings.begin(), earnings.end(),
+  [&total](auto val){ total += val; });
+  \end{lstlisting}
+
+  \CPPEleven
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Smart pointers}
+
+  We discussed the dangers of dynamic memory management using raw pointers on day two
+
+  \vspace{1cm}
+  The smart pointer library in STL is here to rescue us
+
+  \vspace{1cm}
+  Smart pointers act as if they were pointers, but provide additional functionality
+
+  \CPPEleven
+
+  \Library[-2cm]{memory}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The big question}
+
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily,morekeywords={SmartPointer,Type}]
+SmartPointer<Type> p {};
+auto q = p; (*\tikzmark{assign}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(-4.2ex,-.5ex)}] assign) -- +(0,-1cm)
+      node[below,xshift=1cm,Marty] {What happens here?};
+  \end{tikzpicture}
+
+  \CPPEleven
+
+  \Library[-2cm]{memory}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{std{\color{ICantExpress}::}{\color{FeebleWeek}unique\_ptr}}
+
+  The object completely own the resource
+
+  \vspace{1em}
+  Copying is disallowed, can only move
+
+  \begin{onlyenv}<1>
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily,morekeywords={Type}]
+std::unique_ptr<Type> p {};
+auto q = p; (*\tikzmark{assign}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([yshift=.3ex] assign) -- +(1cm,0)
+      node[right,scale=0.75,Marty] {Compile error};
+  \end{tikzpicture}
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily,morekeywords={Type}]
+std::unique_ptr<Type> p {};
+auto q = std::move(p); (*\tikzmark{move}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([yshift=.3ex] move) -- +(1cm,0)
+      node[right,scale=0.75,FeebleWeek] {OK};
+  \end{tikzpicture}
+  \end{onlyenv}
+  
+  \CPPEleven
+
+  \Library[-2cm]{memory}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{std{\color{ICantExpress}::}{\color{FeebleWeek}shared\_ptr}}
+
+  Keeps a count of all the references to the resource
+
+  \vspace{1em}
+  Only deletes the resource when all hooks are gone
+
+  \vspace{1em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily,morekeywords={Type}]
+std::shared_ptr<Type> p {}; (*\tikzmark{construct}*)
+auto q = p; (*\tikzmark{assign}*)
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \coordinate (layer1) at ([xshift=3cm] current page.north);
+    \node[right,scale=0.75,yshift=.7ex] at (construct -| layer1) {.{\color{Tropiteal}use\_count}() = 1};
+    \node[right,scale=0.75,yshift=.7ex] at (assign -| layer1) {.{\color{Tropiteal}use\_count}() = 2};
+  \end{tikzpicture}
+  
+  \CPPEleven
+
+  \Library[-2cm]{memory}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Guideline}
+
+  \begin{center}
+  \begin{tikzpicture}
+    \node [use as bounding box,font=\fontspec{Yanone Kaffeesatz Regular}] (quote) {%
+      \begin{minipage}{0.85\textwidth}
+        Don't use explicit new, delete and owning * pointers, except in rare
+        cases encapsulated inside the implementation of low-level data structures.
+      \end{minipage}
+    };
+    \node at (quote.south east) [font=\fontspec{Yanone Kaffeesatz Regular},Tropiteal] {Herb Sutter};
+  \end{tikzpicture}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Other libraries}
+
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Random number generation
+    \item Duration
+    \item Regular expressions
+    \item Thread support
+    \item Atomic operations
+  \end{itemize}
+  
+\end{frame}
+
+\section{Exceptions}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[fragile]
+  \frametitle{Motivating example}
+  
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={size_t}]
+template <class Type>
+class Vector
+{
+public:
+  Type& operator[](const std::size_t index)
+  {
+    if (index >= size) {
+
+
+
+    } (*\tikzmark{exception}*)
+
+    // ... 
+  }
+};
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw[pointy arrow] ([shift={(2cm,.5cm)}] exception) -- +(330:2cm)
+      node[below right,scale=0.75] {What do you do here?};
+  \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The old style}
+
+  C\; programmers mostly use error flags for this
+
+  \vspace{.5em}
+  \begin{lstlisting}[basicstyle=\ttfamily\fontsize{9pt}{8pt}\selectfont]
+template <class Type>
+  \end{lstlisting} \vspace*{-1ex}
+  \begin{lstlisting}[basicstyle=\ttfamily\fontsize{9pt}{8pt}\selectfont,morekeywords={Type,Vector,size_t}]
+int accessVector(
+  Type& res, const Vector<Type> &v, std::size_t i)
+{
+  if (i >= v.size()) {
+    return 1;
+  }
+
+  res = v[i];
+  return 0;
+}
+  \end{lstlisting}
+
+  \vspace{.5em}
+  {\color{Marty}Disadvantage}: They can be ignored
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Exception detection - {\color{FeebleWeek}throw}}
+
+  \only<1>{
+  When an exception is detected, we\, {\Large\color{Marty}throw}
+  }
+
+  \only<2->{
+  What do we throw?
+
+  \vspace{.5em}
+  \uncover<3>{
+    An object that describes the error we encountered
+  }
+  }
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Back to the vector}
+
+  \begin{lstlisting}
+struct OutOfRangeError {};
+  \end{lstlisting}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={size_t,OutOfRangeError}]
+template <class Type>
+class Vector
+{
+public:
+  Type& operator[](const std::size_t index)
+  {
+    if (index >= size) {
+      throw OutOfRangeError {};
+    }
+
+    // ... 
+  }
+};
+  \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Exception handling - {\color{FeebleWeek}catch}}
+
+  \begin{onlyenv}<1>
+  When an exception is thrown, the code will move outwards until it is caught
+  
+  \begin{center}
+    \begin{tikzpicture}[
+      every node/.style={font=\fontspec{Yanone Kaffeesatz Regular},scale=0.8},
+      scale=0.8]
+      \draw[line width=.5pt] (0,0) rectangle (8cm,-5cm);
+      \draw[line width=.5pt] (.5cm,-.75cm) rectangle (7.5cm,-4.5cm);
+      \draw[line width=.5pt] (1cm,-1.5cm) rectangle (7cm,-4cm);
+      \draw[line width=.5pt] (1.5cm,-2.25cm) rectangle (6.5cm,-3.5cm);
+      \node[anchor=north west,inner sep=1pt] at (.2cm, -.1cm)    [scale=0.75] {Scope 1};
+      \node[anchor=north west,inner sep=1pt] at (.7cm, -.85cm)   [scale=0.75] {Scope 2};
+      \node[anchor=north west,inner sep=1pt] at (1.2cm, -1.6cm)  [scale=0.75] {Scope 3};
+      \node[anchor=north west,inner sep=1pt] at (1.7cm, -2.35cm) [scale=0.75] {Scope 4};
+
+      \node[fill,circle, inner sep=0pt, minimum size=5pt,Marty] at (2cm,-3.05cm) (throw) {};
+      \node[right=.1cm of throw,FeebleWeek,yshift=.1ex] {throw}; 
+      \draw[-{Stealth},Marty,line width=1pt] (throw.west) -- +(-1.7cm,0);
+    \end{tikzpicture}
+  \end{center}
+
+  If the exception isn't caught, the program terminates
+  \end{onlyenv}
+
+  \begin{onlyenv}<2>
+
+  Exception handling is done by {\color{FeebleWeek}try}-{\color{FeebleWeek}catch} blocks
+
+  \vspace{.5em}
+  \begin{lstlisting}[escapeinside={(*}{*)},basicstyle=\ttfamily\fontsize{12pt}{12pt}\selectfont,morekeywords={ExceptionType}]
+try {
+(*\tikzmark{detection}*)
+
+} catch (ExceptionType & err) {
+(*\tikzmark{handling}*)
+
+}
+  \end{lstlisting}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=west,shift={(.5cm,-.4ex)}] at (detection) [scale=.8] {executing code};
+    \node[anchor=west,shift={(.5cm,-.4ex)}] at (handling) [scale=.8] {exception handling};
+  \end{tikzpicture}
+
+  The catch block is only executed if an exception of the corresponding type is thrown in the try block
+  \end{onlyenv}
+
+  \begin{onlyenv}<3>
+    Can do multiple catch statements
+
+    \vspace{.5em}
+    \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={exception,runtime_error}]
+try {
+
+} catch (std::runtime_error & e) {
+
+} catch (std::exception & e) {
+
+} catch (...) {
+
+}
+    \end{lstlisting}
+
+    \vspace{.5em}
+    As with if-else, first match is executed
+  \end{onlyenv}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Exception classes}
+
+  One should implement exception classes through inheritance
+
+  \vspace{1em}
+  That way the handler doesn't have to know about everything that can go
+  wrong inside the try-block
+
+  \vspace{1em}
+  Should always catch by reference to avoid slicing
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\inkey{exception}}
+  \fontspec{Yanone Kaffeesatz Regular}
+
+  {\large Base exception type in the standard library}
+
+  \vspace{.75cm}
+  {\large\color{Tropiteal}Notable functions}\\[2pt]
+
+  \hspace*{-.37cm}
+  \begin{tikzpicture}
+  \matrix (functions) [
+    matrix of nodes,
+    column 1/.style={anchor=base west,text width=3.5cm,align=left},
+    column 2/.style={anchor=base west,text width=6.5cm,inner xsep=0pt,align=left},
+    column sep=.5cm
+  ] {
+    \inkey{virtual} \inobj{what}() & returns an explanatory cstring \\
+  };
+
+  \draw[Tropiteal] (functions-1-1.north west) -- (functions-1-2.north east);
+  \end{tikzpicture}
+  
+  \vfill
+
+  \ClassLine
+
+  \Library{exception}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \fontspec{Yanone Kaffeesatz Regular}
+
+  \vspace{.75cm}
+  \begin{center}
+  \begin{tikzpicture}[
+    %scale=.8, every node/.style={scale=.8},
+    class/.style={
+      draw, rounded corners,
+      line width=.5pt,
+      minimum width=3.5cm,
+      fill=TealDrop!60!WhiteTrash
+    },
+    inherit/.style={
+      line width=1pt,
+      {Triangle[open]}-,
+      shorten <=3pt
+    }]
+    \matrix (except) [
+      matrix of nodes,
+      nodes in empty cells,
+      column sep=2cm,
+      row sep=1.5cm,
+      ]
+    {
+      & & \\
+      & & \\
+      & & \\
+      & & \\
+    };
+    \node[class] at (except-1-2) (base) {exception};
+    \node[class] at (except-2-1) (logic) {logic\_error}
+      edge[inherit] (base);
+    \node[class] at (except-2-3) (runtime) {runtime\_error}
+      edge[inherit] (base);
+    \node[class] at (except-3-1) {invalid\_argument}
+      edge[inherit] (logic);
+    \node[class] at (except-4-1) {out\_of\_range}
+      edge[inherit,bend left=73] (logic);
+    \node[class] at (except-3-3) {underflow\_error}
+      edge[inherit] (runtime);
+    \node[class] at (except-4-3) {overflow\_error}
+      edge[inherit,bend right=73] (runtime);
+  \end{tikzpicture}
+  \end{center}
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \node[anchor=north west, inner sep=.3cm] at (current page.north west)
+      [font=\fontspec{Yanone Kaffeesatz Bold}\large]
+      {Exception Class Hierarchy};
+  \end{tikzpicture}
+
+  \Library{stdexcept}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Inheriting from \std{exception}}
+
+  \begin{minipage}{1.2\textwidth}
+  \begin{lstlisting}[escapeinside={(*}{*)},morekeywords={noexcept,override,exception}]
+class Error : public std::exception
+{
+public:
+  Error(std::string err)
+    : error_message {std::move(err)} {}
+
+  virtual const char* what() const noexcept override
+  {
+    return error_message.c_str();
+  }
+
+private:
+  std::string error_message;
+};
+  \end{lstlisting}
+  \end{minipage}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Performance impact}
+
+  Biggest complaint from C users: {\only<1>{\color{Marty}}exceptions are slow}
+
+  \uncover<2>{
+  \vspace{.75cm}
+  Well, then you are using them wrong...
+
+  \vspace{.5cm}
+  Never use exceptions to steer program flow
+
+  \vspace{.5cm}
+  If the code doesn't throw, there is no overhead
+  }
+
+  
+\end{frame}
+
+\section{Where to go from here}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}[plain]
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+
+    \coordinate (layer1) at ([yshift=-1cm] current page.west);
+
+    \fill[TealDrop] (current page.north west) rectangle (current page.south east);
+
+    \fill[WhiteTrash] decorate [decoration={random steps, segment length=5pt,amplitude=3pt}]%
+      {([xshift=1cm] layer1) -- ++(1.5cm,1.5cm) -- ++(.5cm, .1cm) -- ([xshift=4.1cm] layer1)} -- cycle;
+
+    \fill[Tropiteal] (layer1) rectangle (current page.south east);
+    \node[anchor=base west,inner sep=0pt,scale=1.2] at ([xshift=5cm] layer1) [WhiteTrash] {Only the tip of the iceberg};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{boost}
+
+  The best multi-functional library for C++ out there
+
+  \vspace{.5em}
+  \begin{columns}
+  \column{.4\textwidth}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Filesystem
+    \item Iostreams
+    \item Iterator
+    \item Multi-Array
+    \item Multiprecision
+  \end{itemize}
+  \column{.5\textwidth}
+  \begin{itemize}
+    \setlength\itemsep{.5em}
+    \item Phoenix
+    \item Program Options
+    \item Property Tree
+    \item System
+    \item ...and many more
+  \end{itemize}
+  \end{columns}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Fun with templates}
+
+  There is so much one can do with templates
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{.75em}
+    \item Metaprogramming
+    \item Variadic templates
+    \item Expression templates
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Design patterns}
+
+  Design patterns are simple and elegant solutions to specific problems
+  one often encounters when coding
+
+  \vspace{1cm}
+  Design patterns are often language independent, and is an
+  indispensable tool to any good programmer
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{All the details}
+
+  {\color{Tropiteal}cppreferen.com} \:is my most visited webpage
+
+  \vspace{1cm}
+  Scott Meyers' "Effective ..." series is {\large really} good
+
+  \vspace{1cm}
+  Herb Sutter's "Guru of the Week" is very enlightening
+
+
+  
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Language development}
+
+  There is a lot happening these days
+
+  \vspace{1cm}
+  \hspace*{-.5cm}
+  \begin{tikzpicture}
+    \node (github) {\includegraphics[width=2cm]{Figures/Octocat.png}};
+    \node [right=0pt of github] [Tropiteal,font=\ttfamily] {isocpp/CppCoreGuidelines};
+  \end{tikzpicture}
+  
+\end{frame}
+
+\section{Programming Practices}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Good Programming Practices}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item prefer \std{array} to static arrays
+    \item prefer \std{vector} to dynamic arrays
+    \item prefer algorithms calls to hand-written loops
+    \item avoid the use of "dumb" pointers
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Good Programming Practices}
+
+  When it comes to exceptions
+
+  \vspace{.5em}
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item throw by value
+    \item catch by reference
+    \item re-throw if necessary
+    \item inherit from \std{exception}
+  \end{itemize}
+  
+\end{frame}
+
+\section{Recap}
+
+\frame[plain]{\sectionpage}
+
+\begin{frame}
+  \frametitle{Recap Day 5}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item Lots of useful tools in the STL
+    \vspace{.25em}
+    \begin{itemize}
+      \setlength\itemsep{.25em}
+      \item Containers
+      \item Streams
+      \item Smart pointers
+      \item ++
+    \end{itemize}
+    \item Iterators give a generic way of working with all the different containers
+    \item Algorithms for all your programming needs
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Recap Day 5}
+
+  \begin{itemize}
+    \setlength\itemsep{0.75em}
+    \item Use {\color{FeebleWeek}throw} to signal an exception
+    \item {\color{FeebleWeek}try}-{\color{FeebleWeek}catch} blocks to handle them
+    \item One can inherit from \std{exception} to\\make a uniform exception interface
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[plain]
+
+  \nointerlineskip
+  \begin{tikzpicture}[overlay,remember picture]
+    \fill[ICantExpress] (current page.north east) rectangle (current page.south west);
+    \node[scale=1.3] at (current page.center) [font=\LARGE, ConradGold] {%
+      \begin{varwidth}{.5\textwidth}
+      \scalebox{0.97}{May the}\\
+      \scalebox{1.3}{FORCE}\\
+      be with\\[5pt]
+      \scalebox{1.95}{YOU}
+      \end{varwidth}
+    };
+  \end{tikzpicture}
+  
+\end{frame}
+
+\end{document}
