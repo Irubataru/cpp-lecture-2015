@@ -20,7 +20,7 @@ This git contains the course content for the C++ lecture I gave in 2015
 
  - [ ] Sample Solutions
    - [x] Sample Solution 28.09
-   - [ ] Sample Solution 29.09
+   - [x] Sample Solution 29.09
    - [ ] Sample Solution 30.09
    - [ ] Sample Solution 01.10
    - [ ] Sample Solution 02.10
