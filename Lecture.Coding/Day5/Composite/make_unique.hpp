@@ -1,7 +1,7 @@
 /*
  * Created: 24-03-2015
  * Modified: Tue 24 Mar 2015 16:14:41 CET
- * Author: Jonas R. Glesaaen (jonas@glesaaen.com)
+ * Author: Aleksandra R. Glesaaen (aleksandra@glesaaen.com)
  */
 
 #ifndef MAKE_UNIQUE_HPP

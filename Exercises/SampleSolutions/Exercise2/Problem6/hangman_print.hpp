@@ -1,7 +1,7 @@
 /*
  * Created: 07-10-2015
  * Modified: Wed 07 Oct 2015 14:43:06 CEST
- * Author: Jonas R. Glesaaen (jonas@glesaaen.com)
+ * Author: Aleksandra R. Glesaaen (aleksandra@glesaaen.com)
  */
 
 #ifndef HANGMAN_PRINT_HPP

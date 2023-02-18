@@ -1,7 +1,7 @@
 /*
  * Created: 30-09-2015
  * Modified: Mon 19 Oct 2015 11:54:20 CEST
- * Author: Jonas R. Glesaaen (jonas@glesaaen.com)
+ * Author: Aleksandra R. Glesaaen (aleksandra@glesaaen.com)
  */
 
 #include"vector.hpp"

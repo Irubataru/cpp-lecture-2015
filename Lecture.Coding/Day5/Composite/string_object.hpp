@@ -1,7 +1,7 @@
 /*
  * Created: 02-10-2015
  * Modified: Fri 02 Oct 2015 16:16:02 CEST
- * Author: Jonas R. Glesaaen (jonas@glesaaen.com)
+ * Author: Aleksandra R. Glesaaen (aleksandra@glesaaen.com)
  */
 
 #ifndef STRING_OBJECT_HPP

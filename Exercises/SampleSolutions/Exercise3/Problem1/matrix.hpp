@@ -1,7 +1,7 @@
 /*
  * Created: 07-10-2015
  * Modified: Mon 19 Oct 2015 11:57:20 CEST
- * Author: Jonas R. Glesaaen (jonas@glesaaen.com)
+ * Author: Aleksandra R. Glesaaen (aleksandra@glesaaen.com)
  */
 
 #ifndef MATRIX_HPP

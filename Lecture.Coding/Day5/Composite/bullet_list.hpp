@@ -1,7 +1,7 @@
 /*
  * Created: 02-10-2015
  * Modified: Fri 02 Oct 2015 16:14:41 CEST
- * Author: Jonas R. Glesaaen (jonas@glesaaen.com)
+ * Author: Aleksandra R. Glesaaen (aleksandra@glesaaen.com)
  */
 
 #ifndef BULLET_LIST_HPP

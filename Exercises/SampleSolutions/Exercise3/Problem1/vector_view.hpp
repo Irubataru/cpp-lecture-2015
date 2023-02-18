@@ -1,7 +1,7 @@
 /*
  * Created: 09-10-2015
  * Modified: Fri 09 Oct 2015 13:06:54 CEST
- * Author: Jonas R. Glesaaen (jonas@glesaaen.com)
+ * Author: Aleksandra R. Glesaaen (aleksandra@glesaaen.com)
  */
 
 #ifndef VECTOR_VIEW_HPP
